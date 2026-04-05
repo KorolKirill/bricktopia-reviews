@@ -6,9 +6,8 @@
   'use strict';
 
   // --- Config ---
-  // API URL: use defined window var, or auto-detect from URL params, or default
   const API_BASE = window.REVIEW_API_URL || 'https://platizhka-back.vercel.app';
-  const DEFAULT_STORE_ID = 1; // Bricktopia store ID in platizhka
+  const DEFAULT_STORE_ID = 1;
 
   const JUDGE_ME_URL =
     'https://judge.me/product_reviews/5d10bc62-b28b-4e1e-9cbb-81ae0d86919a/new?store-review-only=true&source=shareable-link';
@@ -20,6 +19,8 @@
     4: 'Добре 😊',
     5: 'Чудово! 🤩',
   };
+
+  const TOTAL_SURVEY_PAGES = 3;
 
   // --- DOM refs ---
   const steps = {
@@ -36,8 +37,11 @@
   const btnSendNeg = document.getElementById('btn-send-negative');
   const btnShowSurvey = document.getElementById('btn-show-survey');
   const surveyForm = document.getElementById('survey-form');
+  const surveyProgressBar = document.getElementById('survey-progress-bar');
+  const surveyStepLabel = document.getElementById('survey-step-label');
 
   let selectedRating = 0;
+  let currentSurveyPage = 1;
 
   // --- Helpers ---
   function showStep(name) {
@@ -45,7 +49,7 @@
     const target = steps[name];
     if (target) {
       target.classList.add('active');
-      target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      window.scrollTo({ top: 0, behavior: 'smooth' });
     }
   }
 
@@ -72,6 +76,17 @@
       btn.classList.remove('loading');
       btn.disabled = false;
     }
+  }
+
+  // --- Survey pagination ---
+  function showSurveyPage(page) {
+    currentSurveyPage = page;
+    document.querySelectorAll('.survey-page').forEach((p) => {
+      p.classList.toggle('active', parseInt(p.dataset.page, 10) === page);
+    });
+    const pct = Math.round((page / TOTAL_SURVEY_PAGES) * 100);
+    surveyProgressBar.style.width = pct + '%';
+    surveyStepLabel.textContent = `Крок ${page} з ${TOTAL_SURVEY_PAGES}`;
   }
 
   // --- Pre-fill from URL params ---
@@ -134,7 +149,6 @@
 
     starLabel.textContent = STAR_LABELS[rating];
 
-    // Delay to let user see their selection
     setTimeout(() => {
       if (rating <= 3) {
         showStep('negative');
@@ -178,6 +192,40 @@
     return response.json();
   }
 
+  // --- Back buttons ---
+  function initBackButtons() {
+    document.querySelectorAll('.btn-back').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        const target = btn.dataset.go;
+        if (target) showStep(target);
+      });
+    });
+  }
+
+  // --- Survey page navigation ---
+  function initSurveyNav() {
+    document.querySelectorAll('.btn-survey-next').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        // Validate page 1 required fields
+        if (currentSurveyPage === 1) {
+          const name = document.getElementById('survey-name').value.trim();
+          const contact = document.getElementById('survey-contact').value.trim();
+          if (!name || !contact) {
+            alert("Будь ласка, заповніть ім'я та контакт");
+            return;
+          }
+        }
+        showSurveyPage(parseInt(btn.dataset.next, 10));
+      });
+    });
+
+    document.querySelectorAll('.btn-survey-prev').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        showSurveyPage(parseInt(btn.dataset.prev, 10));
+      });
+    });
+  }
+
   // --- Event handlers ---
   function initEvents() {
     // Send negative feedback
@@ -213,6 +261,7 @@
     // Show survey
     btnShowSurvey.addEventListener('click', () => {
       showStep('survey');
+      showSurveyPage(1);
     });
 
     // Submit survey
@@ -224,6 +273,7 @@
 
       if (!name || !contact) {
         alert("Будь ласка, заповніть ім'я та контакт");
+        showSurveyPage(1);
         return;
       }
 
@@ -262,6 +312,8 @@
   function init() {
     prefill();
     initStars();
+    initBackButtons();
+    initSurveyNav();
     initEvents();
   }
 
