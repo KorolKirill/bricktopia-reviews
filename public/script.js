@@ -6,6 +6,10 @@
   'use strict';
 
   // --- Config ---
+  // API URL: use defined window var, or auto-detect from URL params, or default
+  const API_BASE = window.REVIEW_API_URL || 'https://platizhka-back.vercel.app';
+  const DEFAULT_STORE_ID = 1; // Bricktopia store ID in platizhka
+
   const JUDGE_ME_URL =
     'https://judge.me/product_reviews/5d10bc62-b28b-4e1e-9cbb-81ae0d86919a/new?store-review-only=true&source=shareable-link';
 
@@ -51,7 +55,13 @@
       orderId: params.get('order') || '',
       customerName: params.get('name') || '',
       customerEmail: params.get('email') || '',
+      storeId: params.get('store') || '',
     };
+  }
+
+  function getStoreId() {
+    const params = getUrlParams();
+    return params.storeId ? Number(params.storeId) : DEFAULT_STORE_ID;
   }
 
   function setLoading(btn, loading) {
@@ -134,61 +144,38 @@
     }, 500);
   }
 
-  // --- Collect form data ---
-  function collectNegativeData() {
-    return {
-      type: 'complaint',
-      rating: selectedRating,
-      name: document.getElementById('neg-name').value.trim(),
-      contact: document.getElementById('neg-contact').value.trim(),
-      order: document.getElementById('neg-order').value.trim(),
-      problem: document.getElementById('neg-problem').value.trim(),
-      timestamp: new Date().toISOString(),
-      url_params: getUrlParams(),
+  // --- Submit to platizhka-back API ---
+  async function submitReview(data) {
+    const payload = {
+      storeId: getStoreId(),
+      type: data.type,
+      rating: data.rating,
+      name: data.name,
+      contact: data.contact,
+      orderId: data.orderId || data.order || null,
+      problem: data.problem || null,
+      source: data.source || null,
+      reorder: data.reorder || null,
+      deliverySpeed: data.delivery_speed || null,
+      quality: data.quality || null,
+      packaging: data.packaging || null,
+      improve: data.improve || null,
+      wishlist: data.wishlist || null,
+      urlParams: getUrlParams(),
     };
-  }
 
-  function collectSurveyData() {
-    const getRadio = (name) => {
-      const el = document.querySelector(`input[name="${name}"]:checked`);
-      return el ? el.value : '';
-    };
+    const response = await fetch(`${API_BASE}/reviews/submit`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    });
 
-    return {
-      type: 'survey',
-      rating: selectedRating,
-      name: document.getElementById('survey-name').value.trim(),
-      contact: document.getElementById('survey-contact').value.trim(),
-      source: getRadio('source'),
-      reorder: getRadio('reorder'),
-      delivery_speed: getRadio('delivery_speed'),
-      quality: getRadio('quality'),
-      packaging: getRadio('packaging'),
-      improve: document.getElementById('survey-improve').value.trim(),
-      wishlist: document.getElementById('survey-wishlist').value.trim(),
-      timestamp: new Date().toISOString(),
-      url_params: getUrlParams(),
-    };
-  }
+    if (!response.ok) {
+      const err = await response.json().catch(() => ({}));
+      throw new Error(err.error || 'Server error');
+    }
 
-  // --- Submit data ---
-  // For now we store in localStorage and log; replace with real API later
-  async function submitData(data) {
-    console.log('Review data:', JSON.stringify(data, null, 2));
-
-    // Store locally
-    const stored = JSON.parse(localStorage.getItem('bricktopia_reviews') || '[]');
-    stored.push(data);
-    localStorage.setItem('bricktopia_reviews', JSON.stringify(stored));
-
-    // TODO: Replace with actual API call
-    // await fetch('/api/reviews', {
-    //   method: 'POST',
-    //   headers: { 'Content-Type': 'application/json' },
-    //   body: JSON.stringify(data),
-    // });
-
-    return true;
+    return response.json();
   }
 
   // --- Event handlers ---
@@ -206,10 +193,17 @@
 
       setLoading(btnSendNeg, true);
       try {
-        await submitData(collectNegativeData());
+        await submitReview({
+          type: 'complaint',
+          rating: selectedRating,
+          name,
+          contact,
+          order: document.getElementById('neg-order').value.trim(),
+          problem,
+        });
         showStep('successNeg');
       } catch (e) {
-        console.error(e);
+        console.error('Submit error:', e);
         alert('Помилка відправки. Спробуйте ще раз.');
       } finally {
         setLoading(btnSendNeg, false);
@@ -233,13 +227,30 @@
         return;
       }
 
+      const getRadio = (radioName) => {
+        const el = document.querySelector(`input[name="${radioName}"]:checked`);
+        return el ? el.value : '';
+      };
+
       const submitBtn = surveyForm.querySelector('button[type="submit"]');
       setLoading(submitBtn, true);
       try {
-        await submitData(collectSurveyData());
+        await submitReview({
+          type: 'survey',
+          rating: selectedRating,
+          name,
+          contact,
+          source: getRadio('source'),
+          reorder: getRadio('reorder'),
+          delivery_speed: getRadio('delivery_speed'),
+          quality: getRadio('quality'),
+          packaging: getRadio('packaging'),
+          improve: document.getElementById('survey-improve').value.trim(),
+          wishlist: document.getElementById('survey-wishlist').value.trim(),
+        });
         showStep('successSurvey');
       } catch (e) {
-        console.error(e);
+        console.error('Submit error:', e);
         alert('Помилка відправки. Спробуйте ще раз.');
       } finally {
         setLoading(submitBtn, false);
