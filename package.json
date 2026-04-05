@@ -1,0 +1,9 @@
+{
+  "name": "bricktopia-reviews",
+  "version": "1.0.0",
+  "description": "Review collection page for Bricktopia store",
+  "scripts": {
+    "dev": "npx serve public",
+    "build": "echo 'Static site, no build needed'"
+  }
+}

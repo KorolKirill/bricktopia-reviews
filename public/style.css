@@ -1,0 +1,508 @@
+/* ===================== */
+/*  Bricktopia Reviews   */
+/* ===================== */
+
+:root {
+  --red: #E42C0B;
+  --orange: #FA5800;
+  --lime: #CBDE25;
+  --lime-dark: #A6D700;
+  --bg: #F5F5F5;
+  --white: #FFFFFF;
+  --dark: #333333;
+  --muted: #555555;
+  --light-muted: #888888;
+  --border: #F0F0F0;
+  --radius: 16px;
+  --radius-sm: 12px;
+  --shadow: 0 4px 24px rgba(0,0,0,0.08);
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: 'Rubik', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  background-color: var(--bg);
+  color: var(--dark);
+  line-height: 1.6;
+  min-height: 100vh;
+}
+
+.page-wrapper {
+  min-height: 100vh;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  padding: 20px 10px;
+}
+
+.container {
+  max-width: 560px;
+  width: 100%;
+  background: var(--white);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  overflow: hidden;
+}
+
+/* Logo */
+.logo-section {
+  background: linear-gradient(135deg, var(--red) 0%, var(--orange) 100%);
+  padding: 24px 30px;
+  text-align: center;
+}
+
+.logo {
+  height: 44px;
+  width: auto;
+  filter: brightness(0) invert(1);
+}
+
+/* Steps */
+.step {
+  display: none;
+  padding: 40px 30px;
+  animation: fadeIn 0.4s ease;
+}
+
+.step.active {
+  display: block;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(12px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* Typography */
+h1 {
+  font-size: 24px;
+  font-weight: 700;
+  color: var(--dark);
+  text-align: center;
+  margin-bottom: 10px;
+}
+
+h2 {
+  font-size: 22px;
+  font-weight: 600;
+  color: var(--dark);
+  text-align: center;
+  margin-bottom: 10px;
+}
+
+h3 {
+  font-size: 17px;
+  font-weight: 600;
+  color: var(--dark);
+  margin-bottom: 8px;
+}
+
+.subtitle {
+  font-size: 15px;
+  color: var(--muted);
+  text-align: center;
+  margin-bottom: 30px;
+  line-height: 1.7;
+}
+
+/* Stars */
+.stars-container {
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+.star-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 6px;
+  transition: transform 0.2s ease;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.star-btn:hover {
+  transform: scale(1.2);
+}
+
+.star-btn:active {
+  transform: scale(0.95);
+}
+
+.star-icon {
+  width: 48px;
+  height: 48px;
+  fill: #D9D9D9;
+  stroke: none;
+  transition: fill 0.2s ease, filter 0.2s ease;
+}
+
+.star-btn.active .star-icon,
+.star-btn.hover .star-icon {
+  fill: #FFB800;
+  filter: drop-shadow(0 2px 6px rgba(255, 184, 0, 0.35));
+}
+
+.star-label {
+  text-align: center;
+  font-size: 14px;
+  color: var(--light-muted);
+  min-height: 22px;
+  transition: color 0.2s;
+}
+
+/* Emoji icons */
+.sad-icon, .happy-icon, .survey-icon, .success-icon {
+  font-size: 48px;
+  text-align: center;
+  margin-bottom: 16px;
+}
+
+/* Forms */
+.form-group {
+  margin-bottom: 20px;
+}
+
+.form-group label {
+  display: block;
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--dark);
+  margin-bottom: 6px;
+}
+
+.form-group input[type="text"],
+.form-group textarea {
+  width: 100%;
+  padding: 12px 16px;
+  border: 2px solid var(--border);
+  border-radius: 10px;
+  font-family: 'Rubik', sans-serif;
+  font-size: 14px;
+  color: var(--dark);
+  transition: border-color 0.2s;
+  outline: none;
+  background: var(--white);
+}
+
+.form-group input[type="text"]:focus,
+.form-group textarea:focus {
+  border-color: var(--orange);
+}
+
+.form-group textarea {
+  resize: vertical;
+}
+
+.form-hint {
+  font-size: 14px;
+  color: var(--muted);
+  margin-bottom: 24px;
+  line-height: 1.7;
+}
+
+/* Radio groups */
+.radio-group {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.radio-label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 14px;
+  border: 2px solid var(--border);
+  border-radius: 50px;
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 400;
+  color: var(--muted);
+  transition: all 0.2s;
+  user-select: none;
+}
+
+.radio-label:hover {
+  border-color: #ddd;
+}
+
+.radio-label input[type="radio"] {
+  display: none;
+}
+
+.radio-label:has(input:checked) {
+  border-color: var(--orange);
+  background: #FFF5F0;
+  color: var(--orange);
+  font-weight: 500;
+}
+
+/* Buttons */
+.btn {
+  display: inline-block;
+  padding: 14px 32px;
+  border-radius: 50px;
+  font-family: 'Rubik', sans-serif;
+  font-size: 14px;
+  font-weight: 600;
+  text-decoration: none;
+  text-align: center;
+  cursor: pointer;
+  border: none;
+  transition: all 0.25s ease;
+  letter-spacing: 0.3px;
+  width: 100%;
+}
+
+.btn-primary {
+  background: linear-gradient(135deg, var(--lime) 0%, var(--lime-dark) 100%);
+  color: var(--dark);
+  box-shadow: 0 4px 15px rgba(203, 222, 37, 0.3);
+}
+
+.btn-primary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(203, 222, 37, 0.4);
+}
+
+.btn-accent {
+  background: linear-gradient(135deg, var(--red) 0%, var(--orange) 100%);
+  color: var(--white);
+  box-shadow: 0 4px 15px rgba(228, 44, 11, 0.25);
+}
+
+.btn-accent:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(228, 44, 11, 0.35);
+}
+
+.btn-secondary {
+  background: var(--white);
+  color: var(--orange);
+  border: 2px solid var(--orange);
+  padding: 12px 32px;
+}
+
+.btn-secondary:hover {
+  background: #FFF5F0;
+  transform: translateY(-2px);
+}
+
+/* Promo box */
+.promo-box {
+  background: #FFF8F6;
+  border: 1px solid #FFE0D6;
+  border-radius: var(--radius-sm);
+  padding: 24px 20px;
+  margin-bottom: 24px;
+  text-align: center;
+}
+
+.promo-icon {
+  font-size: 36px;
+  margin-bottom: 10px;
+}
+
+.promo-box h3 {
+  color: var(--red);
+  font-size: 17px;
+  margin-bottom: 10px;
+  text-align: center;
+}
+
+.promo-box p {
+  font-size: 14px;
+  color: var(--muted);
+  line-height: 1.7;
+}
+
+.promo-box strong {
+  color: var(--dark);
+}
+
+.promo-bonus {
+  margin-top: 16px;
+  padding-top: 16px;
+  border-top: 1px dashed #FFE0D6;
+}
+
+.promo-bonus p {
+  font-size: 13px;
+  margin-top: 8px;
+}
+
+.bonus-badge, .raffle-badge {
+  display: inline-block;
+  background: linear-gradient(135deg, var(--lime) 0%, var(--lime-dark) 100%);
+  color: var(--dark);
+  font-size: 11px;
+  font-weight: 700;
+  padding: 4px 12px;
+  border-radius: 50px;
+  letter-spacing: 0.5px;
+}
+
+/* Raffle box */
+.raffle-box {
+  background: #FFF9F0;
+  border: 1px solid #FFE8D4;
+  border-radius: var(--radius-sm);
+  padding: 20px;
+  margin-bottom: 28px;
+  text-align: center;
+}
+
+.raffle-box p {
+  font-size: 14px;
+  color: var(--muted);
+  margin-top: 10px;
+  line-height: 1.6;
+}
+
+.raffle-box strong {
+  color: var(--dark);
+}
+
+/* Divider */
+.divider {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin: 20px 0;
+}
+
+.divider::before,
+.divider::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: var(--border);
+}
+
+.divider span {
+  font-size: 13px;
+  color: var(--light-muted);
+  font-weight: 400;
+}
+
+/* Success */
+.success-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-top: 8px;
+}
+
+/* Negative form */
+.negative-form {
+  margin-top: 8px;
+}
+
+/* Survey form */
+.survey-form {
+  margin-top: 4px;
+}
+
+/* Footer */
+.footer {
+  background: var(--orange);
+  padding: 24px 30px;
+  text-align: center;
+}
+
+.footer-links {
+  margin-bottom: 10px;
+}
+
+.footer-links a {
+  color: var(--white);
+  text-decoration: none;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.footer-links .dot {
+  color: rgba(255,255,255,0.5);
+  margin: 0 8px;
+}
+
+.footer-phone {
+  font-size: 14px;
+  color: var(--white);
+  font-weight: 600;
+  margin-bottom: 12px;
+}
+
+.footer-legal {
+  font-size: 11px;
+  color: rgba(255,255,255,0.8);
+  font-style: italic;
+  line-height: 1.5;
+}
+
+/* Loading state */
+.btn.loading {
+  pointer-events: none;
+  opacity: 0.7;
+}
+
+.btn.loading::after {
+  content: '';
+  display: inline-block;
+  width: 14px;
+  height: 14px;
+  border: 2px solid currentColor;
+  border-top-color: transparent;
+  border-radius: 50%;
+  animation: spin 0.6s linear infinite;
+  margin-left: 8px;
+  vertical-align: middle;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+/* Responsive */
+@media (max-width: 600px) {
+  .page-wrapper {
+    padding: 0;
+  }
+
+  .container {
+    border-radius: 0;
+    box-shadow: none;
+  }
+
+  .step {
+    padding: 30px 20px;
+  }
+
+  h1 { font-size: 21px; }
+  h2 { font-size: 19px; }
+
+  .star-icon {
+    width: 42px;
+    height: 42px;
+  }
+
+  .footer {
+    padding: 20px;
+  }
+
+  .radio-group {
+    gap: 6px;
+  }
+
+  .radio-label {
+    font-size: 12px;
+    padding: 7px 12px;
+  }
+}

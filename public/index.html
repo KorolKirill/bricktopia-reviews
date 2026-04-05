@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Bricktopia — Ваш відгук</title>
+  <meta name="description" content="Залиште відгук про ваше замовлення в Bricktopia">
+  <link rel="icon" href="https://cdn.shopify.com/s/files/1/0606/8338/6968/files/favicon.png" type="image/png">
+  <link href="https://fonts.googleapis.com/css2?family=Rubik:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/style.css">
+</head>
+<body>
+  <div class="page-wrapper">
+    <div class="container">
+
+      <!-- Logo -->
+      <div class="logo-section">
+        <a href="https://bricktopia.store/" target="_blank">
+          <img src="https://cdn.shopify.com/s/files/1/0606/8338/6968/files/logo_bricktopiav2.png?v=1737126377" alt="Bricktopia" class="logo">
+        </a>
+      </div>
+
+      <!-- Step 1: Star Rating -->
+      <section id="step-rating" class="step active">
+        <h1>Дякуємо за замовлення! 🧱</h1>
+        <p class="subtitle">Як ви оцінюєте свій досвід покупки в Bricktopia?</p>
+
+        <div class="stars-container">
+          <button class="star-btn" data-rating="1" aria-label="1 зірка">
+            <svg viewBox="0 0 24 24" class="star-icon"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+          </button>
+          <button class="star-btn" data-rating="2" aria-label="2 зірки">
+            <svg viewBox="0 0 24 24" class="star-icon"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+          </button>
+          <button class="star-btn" data-rating="3" aria-label="3 зірки">
+            <svg viewBox="0 0 24 24" class="star-icon"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+          </button>
+          <button class="star-btn" data-rating="4" aria-label="4 зірки">
+            <svg viewBox="0 0 24 24" class="star-icon"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+          </button>
+          <button class="star-btn" data-rating="5" aria-label="5 зірок">
+            <svg viewBox="0 0 24 24" class="star-icon"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+          </button>
+        </div>
+        <p class="star-label" id="star-label">Оберіть оцінку</p>
+      </section>
+
+      <!-- Step 2a: Negative (1-3 stars) -->
+      <section id="step-negative" class="step">
+        <div class="sad-icon">😔</div>
+        <h2>Нам дуже шкода, що так вийшло</h2>
+        <p class="subtitle">Ваша думка дуже важлива для нас. Хоча за законодавством України кастомні товари не підлягають поверненню, ми часто йдемо назустріч нашим клієнтам і шукаємо рішення.</p>
+
+        <div class="negative-form">
+          <p class="form-hint">Розкажіть, будь ласка, що саме пішло не так — і ми обов'язково вирішимо ваше питання:</p>
+
+          <div class="form-group">
+            <label for="neg-name">Ваше ім'я</label>
+            <input type="text" id="neg-name" placeholder="Ім'я" required>
+          </div>
+
+          <div class="form-group">
+            <label for="neg-contact">Телефон або Email</label>
+            <input type="text" id="neg-contact" placeholder="+380... або email" required>
+          </div>
+
+          <div class="form-group">
+            <label for="neg-order">Номер замовлення (якщо пам'ятаєте)</label>
+            <input type="text" id="neg-order" placeholder="#BBCDBR...">
+          </div>
+
+          <div class="form-group">
+            <label for="neg-problem">Що саме не так?</label>
+            <textarea id="neg-problem" rows="4" placeholder="Опишіть проблему — ми розберемось і зв'яжемось з вами" required></textarea>
+          </div>
+
+          <button class="btn btn-primary" id="btn-send-negative">
+            Відправити
+          </button>
+        </div>
+      </section>
+
+      <!-- Step 2b: Positive (4-5 stars) -->
+      <section id="step-positive" class="step">
+        <div class="happy-icon">🎉</div>
+        <h2>Дякуємо за високу оцінку!</h2>
+        <p class="subtitle">Ми дуже раді, що вам сподобалось! Ваш відгук допоможе іншим покупцям зробити правильний вибір.</p>
+
+        <div class="promo-box">
+          <div class="promo-icon">🎁</div>
+          <h3>Залиште відгук — отримайте промокод!</h3>
+          <p>За кожен чесний відгук на нашому сайті ми надішлемо вам <strong>промокод на знижку</strong> на наступне замовлення.</p>
+          <div class="promo-bonus">
+            <span class="bonus-badge">📸 БОНУС</span>
+            <p>Відгук з <strong>фото або відео</strong> автоматично бере участь у <strong>щомісячному розіграші безкоштовних персоналізованих фігурок!</strong></p>
+          </div>
+        </div>
+
+        <a href="https://judge.me/product_reviews/5d10bc62-b28b-4e1e-9cbb-81ae0d86919a/new?store-review-only=true&source=shareable-link"
+           class="btn btn-accent" target="_blank" id="btn-judgeme">
+          ⭐ Залишити відгук на сайті
+        </a>
+
+        <div class="divider">
+          <span>або</span>
+        </div>
+
+        <button class="btn btn-secondary" id="btn-show-survey">
+          📋 Пройти опитування та виграти фігурку
+        </button>
+      </section>
+
+      <!-- Step 3: Survey (additional form) -->
+      <section id="step-survey" class="step">
+        <div class="survey-icon">📋</div>
+        <h2>Коротке опитування</h2>
+        <div class="raffle-box">
+          <span class="raffle-badge">🎲 РОЗІГРАШ</span>
+          <p>Щомісяця ми обираємо <strong>5 випадкових учасників</strong> опитування та даруємо їм <strong>безкоштовні персоналізовані фігурки!</strong></p>
+        </div>
+
+        <form id="survey-form" class="survey-form">
+          <div class="form-group">
+            <label for="survey-name">Ваше ім'я *</label>
+            <input type="text" id="survey-name" required placeholder="Ім'я">
+          </div>
+
+          <div class="form-group">
+            <label for="survey-contact">Телефон або Email *</label>
+            <input type="text" id="survey-contact" required placeholder="+380... або email">
+          </div>
+
+          <div class="form-group">
+            <label>Як ви дізнались про Bricktopia?</label>
+            <div class="radio-group">
+              <label class="radio-label"><input type="radio" name="source" value="instagram"> Instagram</label>
+              <label class="radio-label"><input type="radio" name="source" value="tiktok"> TikTok</label>
+              <label class="radio-label"><input type="radio" name="source" value="google"> Google пошук</label>
+              <label class="radio-label"><input type="radio" name="source" value="friend"> Порада друзів</label>
+              <label class="radio-label"><input type="radio" name="source" value="other"> Інше</label>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label>Чи замовляли б ви у нас знову?</label>
+            <div class="radio-group">
+              <label class="radio-label"><input type="radio" name="reorder" value="yes"> Так, обов'язково!</label>
+              <label class="radio-label"><input type="radio" name="reorder" value="maybe"> Можливо</label>
+              <label class="radio-label"><input type="radio" name="reorder" value="no"> Скоріше ні</label>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label>Наскільки швидко ви отримали замовлення?</label>
+            <div class="radio-group">
+              <label class="radio-label"><input type="radio" name="delivery_speed" value="fast"> Дуже швидко</label>
+              <label class="radio-label"><input type="radio" name="delivery_speed" value="normal"> Нормально</label>
+              <label class="radio-label"><input type="radio" name="delivery_speed" value="slow"> Довго чекав(ла)</label>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label>Як вам якість товару?</label>
+            <div class="radio-group">
+              <label class="radio-label"><input type="radio" name="quality" value="excellent"> Чудова!</label>
+              <label class="radio-label"><input type="radio" name="quality" value="good"> Добра</label>
+              <label class="radio-label"><input type="radio" name="quality" value="ok"> Нормальна</label>
+              <label class="radio-label"><input type="radio" name="quality" value="bad"> Не сподобалась</label>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label>Як вам пакування?</label>
+            <div class="radio-group">
+              <label class="radio-label"><input type="radio" name="packaging" value="excellent"> Супер!</label>
+              <label class="radio-label"><input type="radio" name="packaging" value="good"> Добре</label>
+              <label class="radio-label"><input type="radio" name="packaging" value="ok"> Нормальне</label>
+              <label class="radio-label"><input type="radio" name="packaging" value="bad"> Погане</label>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="survey-improve">Що ми можемо покращити?</label>
+            <textarea id="survey-improve" rows="3" placeholder="Ваші побажання та ідеї..."></textarea>
+          </div>
+
+          <div class="form-group">
+            <label for="survey-wishlist">Які товари ви хотіли б бачити в нашому магазині?</label>
+            <textarea id="survey-wishlist" rows="3" placeholder="Фігурки, набори, аксесуари..."></textarea>
+          </div>
+
+          <button type="submit" class="btn btn-primary">
+            Відправити та взяти участь у розіграші
+          </button>
+        </form>
+      </section>
+
+      <!-- Success states -->
+      <section id="step-success-negative" class="step">
+        <div class="success-icon">💙</div>
+        <h2>Дякуємо!</h2>
+        <p class="subtitle">Ми отримали ваше звернення і зв'яжемось з вами найближчим часом, щоб вирішити питання.</p>
+        <a href="https://bricktopia.store/" class="btn btn-secondary" target="_blank">
+          🌐 Перейти до магазину
+        </a>
+      </section>
+
+      <section id="step-success-survey" class="step">
+        <div class="success-icon">🎉</div>
+        <h2>Дякуємо за відповіді!</h2>
+        <p class="subtitle">Ви автоматично берете участь у щомісячному розіграші безкоштовних персоналізованих фігурок. Переможців оголосимо в наших соцмережах!</p>
+        <div class="success-actions">
+          <a href="https://judge.me/product_reviews/5d10bc62-b28b-4e1e-9cbb-81ae0d86919a/new?store-review-only=true&source=shareable-link"
+             class="btn btn-accent" target="_blank">
+            ⭐ Ще й залишити відгук
+          </a>
+          <a href="https://bricktopia.store/" class="btn btn-secondary" target="_blank">
+            🌐 Перейти до магазину
+          </a>
+        </div>
+      </section>
+
+      <!-- Footer -->
+      <footer class="footer">
+        <div class="footer-links">
+          <a href="https://t.me/managerUUA" target="_blank">📱 Telegram</a>
+          <span class="dot">•</span>
+          <a href="https://www.instagram.com/bricktopia.ua/" target="_blank">📷 Instagram</a>
+          <span class="dot">•</span>
+          <a href="https://bricktopia.store/" target="_blank">🌐 Сайт</a>
+        </div>
+        <p class="footer-phone">+380966596072 · Пн-Нд 9-19</p>
+        <p class="footer-legal">Це не продукт LEGO®. LEGO® є торговою маркою LEGO Group, яка не спонсорує, не дозволяє та не схвалює цей продукт.</p>
+      </footer>
+
+    </div>
+  </div>
+
+  <script src="/script.js"></script>
+</body>
+</html>
