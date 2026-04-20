@@ -288,11 +288,13 @@
       method: 'POST',
       body: form,
     });
+    const body = await res.json().catch(() => ({}));
     if (!res.ok) {
-      const err = await res.json().catch(() => ({}));
-      throw new Error(err.error || 'Upload failed');
+      console.error('[upload]', res.status, body);
+      const detail = [body.error, body.hint].filter(Boolean).join(' — ');
+      throw new Error(detail || `HTTP ${res.status}`);
     }
-    return res.json();
+    return body;
   }
 
   function initFileUpload() {
@@ -326,7 +328,7 @@
           }
         } catch (err) {
           console.error('Upload error:', err);
-          alert('Не вдалось завантажити файл. Спробуй ще раз.');
+          alert('Не вдалось завантажити файл: ' + (err && err.message ? err.message : 'невідома помилка'));
           const idx = uploadedMedia.indexOf(placeholder);
           if (idx !== -1) uploadedMedia.splice(idx, 1);
           renderFilePreview();
