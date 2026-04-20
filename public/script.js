@@ -21,6 +21,9 @@
   };
 
   const TOTAL_SURVEY_PAGES = 3;
+  const TOTAL_REVIEW_PAGES = 4;
+  const MAX_FILES = 3;
+  const MAX_FILE_SIZE = 15 * 1024 * 1024; // 15 MB
 
   // --- DOM refs ---
   const steps = {
@@ -37,11 +40,15 @@
   const starBtns = document.querySelectorAll('#step-rating .star-btn');
   const starLabel = document.getElementById('star-label');
   const btnSendNeg = document.getElementById('btn-send-negative');
-  const btnShowSurvey = document.getElementById('btn-show-survey');
   const btnShowReview = document.getElementById('btn-show-review');
-  const btnShowReviewAfterSurvey = document.getElementById('btn-show-review-after-survey');
+  const btnShowSurveyAfterReview = document.getElementById('btn-show-survey-after-review');
   const reviewForm = document.getElementById('review-form');
   const reviewStarBtns = document.querySelectorAll('#review-stars .star-btn');
+  const reviewRatingLabel = document.getElementById('review-rating-label');
+  const reviewProgressBar = document.getElementById('review-progress-bar');
+  const reviewStepLabel = document.getElementById('review-step-label');
+  const reviewFilesInput = document.getElementById('review-files');
+  const filePreviewGrid = document.getElementById('file-preview-grid');
   const surveyForm = document.getElementById('survey-form');
   const surveyProgressBar = document.getElementById('survey-progress-bar');
   const surveyStepLabel = document.getElementById('survey-step-label');
@@ -49,6 +56,8 @@
   let selectedRating = 0;
   let reviewRating = 0;
   let currentSurveyPage = 1;
+  let currentReviewPage = 1;
+  let uploadedMedia = []; // [{ url, contentType, name }]
 
   // --- Helpers ---
   function showStep(name) {
@@ -112,10 +121,10 @@
     if (customerEmail) {
       const negContact = document.getElementById('neg-contact');
       const surveyContact = document.getElementById('survey-contact');
-      const reviewEmail = document.getElementById('review-email');
+      const reviewContact = document.getElementById('review-contact');
       if (negContact) negContact.value = customerEmail;
       if (surveyContact) surveyContact.value = customerEmail;
-      if (reviewEmail) reviewEmail.value = customerEmail;
+      if (reviewContact) reviewContact.value = customerEmail;
     }
 
     if (orderId) {
@@ -183,32 +192,184 @@
   }
 
   // --- Review-form stars ---
-  function initReviewStars() {
-    function paint(upTo) {
-      reviewStarBtns.forEach((btn) => {
-        const r = parseInt(btn.dataset.rating, 10);
-        btn.classList.toggle('active', r <= upTo);
-      });
+  function paintReviewStars(upTo) {
+    reviewStarBtns.forEach((btn) => {
+      const r = parseInt(btn.dataset.rating, 10);
+      btn.classList.toggle('active', r <= upTo);
+    });
+    if (reviewRatingLabel) {
+      reviewRatingLabel.textContent = upTo > 0 ? (STAR_LABELS[upTo] || '') : 'Оберіть оцінку';
     }
+  }
+
+  function initReviewStars() {
     reviewStarBtns.forEach((btn) => {
       const rating = parseInt(btn.dataset.rating, 10);
-      btn.addEventListener('mouseenter', () => paint(Math.max(rating, reviewRating)));
-      btn.addEventListener('mouseleave', () => paint(reviewRating));
+      btn.addEventListener('mouseenter', () => paintReviewStars(Math.max(rating, reviewRating)));
+      btn.addEventListener('mouseleave', () => paintReviewStars(reviewRating));
       btn.addEventListener('click', () => {
         reviewRating = rating;
-        paint(rating);
+        paintReviewStars(rating);
       });
     });
+  }
+
+  // --- Review multi-step pagination ---
+  function showReviewPage(page) {
+    currentReviewPage = page;
+    document.querySelectorAll('.review-page').forEach((p) => {
+      p.classList.toggle('active', parseInt(p.dataset.page, 10) === page);
+    });
+    const pct = Math.round((page / TOTAL_REVIEW_PAGES) * 100);
+    if (reviewProgressBar) reviewProgressBar.style.width = pct + '%';
+    if (reviewStepLabel) reviewStepLabel.textContent = `Крок ${page} з ${TOTAL_REVIEW_PAGES}`;
   }
 
   function openReviewForm() {
     // Carry over the rating chosen on step 1 (should be 4 or 5)
     reviewRating = selectedRating || 5;
-    reviewStarBtns.forEach((btn) => {
-      const r = parseInt(btn.dataset.rating, 10);
-      btn.classList.toggle('active', r <= reviewRating);
-    });
+    paintReviewStars(reviewRating);
+    showReviewPage(1);
     showStep('review');
+  }
+
+  // --- File uploads ---
+  function humanSize(bytes) {
+    if (bytes < 1024) return bytes + ' Б';
+    if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(0) + ' КБ';
+    return (bytes / 1024 / 1024).toFixed(1) + ' МБ';
+  }
+
+  function renderFilePreview() {
+    if (!filePreviewGrid) return;
+    filePreviewGrid.innerHTML = '';
+    uploadedMedia.forEach((m, i) => {
+      const item = document.createElement('div');
+      item.className = 'file-preview-item';
+
+      if (m.contentType && m.contentType.startsWith('video/')) {
+        const v = document.createElement('video');
+        v.src = m.url;
+        v.muted = true;
+        v.playsInline = true;
+        item.appendChild(v);
+      } else {
+        const img = document.createElement('img');
+        img.src = m.url;
+        img.alt = '';
+        item.appendChild(img);
+      }
+
+      if (m.uploading) {
+        const spinner = document.createElement('div');
+        spinner.className = 'file-preview-spinner';
+        item.appendChild(spinner);
+      }
+
+      const remove = document.createElement('button');
+      remove.type = 'button';
+      remove.className = 'file-preview-remove';
+      remove.textContent = '×';
+      remove.setAttribute('aria-label', 'Видалити');
+      remove.addEventListener('click', () => {
+        uploadedMedia.splice(i, 1);
+        renderFilePreview();
+      });
+      item.appendChild(remove);
+
+      filePreviewGrid.appendChild(item);
+    });
+  }
+
+  async function uploadFile(file) {
+    const form = new FormData();
+    form.append('file', file);
+    const res = await fetch(`${REVIEW_API}/api/public/reviews/upload`, {
+      method: 'POST',
+      body: form,
+    });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.error || 'Upload failed');
+    }
+    return res.json();
+  }
+
+  function initFileUpload() {
+    if (!reviewFilesInput) return;
+    reviewFilesInput.addEventListener('change', async (e) => {
+      const files = Array.from(e.target.files || []);
+      e.target.value = ''; // allow re-selecting same file
+
+      for (const file of files) {
+        if (uploadedMedia.length >= MAX_FILES) {
+          alert(`Максимум ${MAX_FILES} файлів`);
+          break;
+        }
+        if (file.size > MAX_FILE_SIZE) {
+          alert(`Файл "${file.name}" завеликий (${humanSize(file.size)}). Макс. ${humanSize(MAX_FILE_SIZE)}.`);
+          continue;
+        }
+
+        // Local preview while uploading
+        const localUrl = URL.createObjectURL(file);
+        const placeholder = { url: localUrl, contentType: file.type, name: file.name, uploading: true };
+        uploadedMedia.push(placeholder);
+        renderFilePreview();
+
+        try {
+          const result = await uploadFile(file);
+          const idx = uploadedMedia.indexOf(placeholder);
+          if (idx !== -1) {
+            uploadedMedia[idx] = { url: result.url, contentType: result.contentType || file.type, name: file.name };
+            renderFilePreview();
+          }
+        } catch (err) {
+          console.error('Upload error:', err);
+          alert('Не вдалось завантажити файл. Спробуй ще раз.');
+          const idx = uploadedMedia.indexOf(placeholder);
+          if (idx !== -1) uploadedMedia.splice(idx, 1);
+          renderFilePreview();
+        }
+      }
+    });
+  }
+
+  // --- Review pagination nav ---
+  function initReviewNav() {
+    document.querySelectorAll('.btn-review-next').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        const next = parseInt(btn.dataset.next, 10);
+
+        // Validate current page
+        if (currentReviewPage === 1 && !reviewRating) {
+          alert('Оберіть оцінку');
+          return;
+        }
+        if (currentReviewPage === 2) {
+          const body = document.getElementById('review-body').value.trim();
+          if (!body) {
+            alert('Напишіть, будь ласка, текст відгуку');
+            return;
+          }
+        }
+        if (currentReviewPage === 3) {
+          // Block nav while any file is still uploading
+          if (uploadedMedia.some((m) => m.uploading)) {
+            alert('Зачекайте поки завантажаться файли');
+            return;
+          }
+        }
+
+        showReviewPage(next);
+      });
+    });
+
+    document.querySelectorAll('.btn-review-prev').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        showReviewPage(parseInt(btn.dataset.prev, 10));
+      });
+    });
   }
 
   async function submitProductReview(data) {
@@ -218,11 +379,11 @@
       productHandle: urlP.productHandle || null,
       productTitle: data.productTitle || urlP.productTitle || null,
       rating: data.rating,
-      title: data.title || null,
       body: data.body,
       authorName: data.name,
-      authorEmail: data.email || null,
+      authorEmail: data.contact || null,
       orderId: data.orderId || null,
+      images: data.images || [],
       urlParams: urlP,
     };
 
@@ -340,38 +501,48 @@
       }
     });
 
-    // Show survey
-    btnShowSurvey.addEventListener('click', () => {
-      showStep('survey');
-      showSurveyPage(1);
-    });
-
     // Show our product-review form (replaces Judge.me link)
     if (btnShowReview) {
       btnShowReview.addEventListener('click', openReviewForm);
     }
-    if (btnShowReviewAfterSurvey) {
-      btnShowReviewAfterSurvey.addEventListener('click', openReviewForm);
+
+    // Offer the survey AFTER a positive review is submitted
+    if (btnShowSurveyAfterReview) {
+      btnShowSurveyAfterReview.addEventListener('click', () => {
+        showStep('survey');
+        showSurveyPage(1);
+      });
     }
 
-    // Submit product review
+    // Submit product review (triggered from page 4)
     if (reviewForm) {
       reviewForm.addEventListener('submit', async (e) => {
         e.preventDefault();
 
         const name = document.getElementById('review-name').value.trim();
-        const email = document.getElementById('review-email').value.trim();
+        const contact = document.getElementById('review-contact').value.trim();
         const body = document.getElementById('review-body').value.trim();
-        const title = document.getElementById('review-title').value.trim();
         const orderId = document.getElementById('review-order').value.trim();
         const productTitle = document.getElementById('review-product').value.trim();
 
         if (!reviewRating) {
           alert('Оберіть оцінку');
+          showReviewPage(1);
           return;
         }
-        if (!name || !body) {
-          alert("Заповніть ім'я та текст відгуку");
+        if (!body) {
+          alert('Напишіть, будь ласка, текст відгуку');
+          showReviewPage(2);
+          return;
+        }
+        if (!name) {
+          alert("Вкажіть, як підписати відгук");
+          return;
+        }
+
+        // Block submit while any file is still uploading
+        if (uploadedMedia.some((m) => m.uploading)) {
+          alert('Зачекайте поки завантажаться файли');
           return;
         }
 
@@ -381,11 +552,11 @@
           await submitProductReview({
             rating: reviewRating,
             name,
-            email,
+            contact,
             body,
-            title,
             orderId,
             productTitle,
+            images: uploadedMedia.map((m) => m.url),
           });
           showStep('successReview');
         } catch (err) {
@@ -446,6 +617,8 @@
     prefill();
     initStars();
     initReviewStars();
+    initReviewNav();
+    initFileUpload();
     initBackButtons();
     initSurveyNav();
     initEvents();

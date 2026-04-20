@@ -84,13 +84,12 @@
         <button class="btn-back" data-go="rating">← Змінити оцінку</button>
         <div class="happy-icon">🎉</div>
         <h2>Ви зробили наш день! 🥰</h2>
-        <p class="subtitle">Кожен відгук — це величезна підтримка для нашої маленької команди. Ви навіть не уявляєте, як це нас мотивує! Оберіть, як ви хочете нас підтримати:</p>
+        <p class="subtitle">Кожен відгук — це величезна підтримка для нашої маленької команди. Ваш відгук з'явиться на сайті поруч із товаром і допоможе іншим покупцям:</p>
 
-        <!-- Option 1: Leave a review on our site -->
         <div class="option-card option-review">
           <div class="option-header">
-            <span class="option-number">1</span>
-            <h3>Залишити відгук на сайті 💛</h3>
+            <span class="option-number">💛</span>
+            <h3>Залишити відгук на сайті</h3>
           </div>
           <div class="option-body">
             <div class="option-rewards">
@@ -100,7 +99,7 @@
               </div>
               <div class="reward-item">
                 <span class="reward-icon">📸</span>
-                <span>Відгук з <strong>фото або відео</strong> — особливо цінний для нас та інших покупців</span>
+                <span>Відгук з <strong>фото або відео</strong> — додатковий бонус 🔥</span>
               </div>
             </div>
             <button class="btn btn-accent" id="btn-show-review">
@@ -108,34 +107,25 @@
             </button>
           </div>
         </div>
-
-        <div class="divider"><span>та / або</span></div>
-
-        <!-- Option 2: Survey -->
-        <div class="option-card option-survey">
-          <div class="option-header">
-            <span class="option-number">2</span>
-            <h3>Пройти опитування</h3>
-          </div>
-          <div class="option-body">
-            <p class="option-desc">Допоможіть нам стати краще — це займе лише 2 хвилини!</p>
-            <button class="btn btn-secondary" id="btn-show-survey">
-              📋 Пройти опитування
-            </button>
-          </div>
-        </div>
       </section>
 
-      <!-- Step 2c: Product review form (replaces Judge.me) -->
+      <!-- Step 2c: Product review — multi-step -->
       <section id="step-review" class="step">
         <button class="btn-back" data-go="positive">← Назад</button>
         <div class="happy-icon">⭐</div>
         <h2>Залиште відгук</h2>
-        <p class="subtitle">Ваш відгук з'явиться на сайті поруч із товаром і допоможе іншим клієнтам. Фото дуже вітаються!</p>
 
-        <form id="review-form" class="negative-form">
-          <div class="form-group">
-            <label>Ваша оцінка</label>
+        <!-- Progress bar -->
+        <div class="survey-progress">
+          <div class="survey-progress-bar" id="review-progress-bar" style="width: 25%"></div>
+        </div>
+        <p class="survey-step-label" id="review-step-label">Крок 1 з 4</p>
+
+        <form id="review-form" class="survey-form">
+
+          <!-- Page 1: Rating -->
+          <div class="review-page active" data-page="1">
+            <p class="subtitle" style="margin-bottom:16px">Яка ваша оцінка товару?</p>
             <div class="stars-container stars-small" id="review-stars">
               <button type="button" class="star-btn" data-rating="1" aria-label="1"><svg viewBox="0 0 24 24" class="star-icon"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg></button>
               <button type="button" class="star-btn" data-rating="2" aria-label="2"><svg viewBox="0 0 24 24" class="star-icon"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg></button>
@@ -143,42 +133,80 @@
               <button type="button" class="star-btn" data-rating="4" aria-label="4"><svg viewBox="0 0 24 24" class="star-icon"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg></button>
               <button type="button" class="star-btn" data-rating="5" aria-label="5"><svg viewBox="0 0 24 24" class="star-icon"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg></button>
             </div>
+            <p class="star-label" id="review-rating-label">Оберіть оцінку</p>
+
+            <button type="button" class="btn btn-primary btn-review-next" data-next="2">
+              Далі →
+            </button>
           </div>
 
-          <div class="form-group">
-            <label for="review-name">Ваше ім'я</label>
-            <input type="text" id="review-name" placeholder="Як підписати відгук" required>
+          <!-- Page 2: Review text -->
+          <div class="review-page" data-page="2">
+            <p class="subtitle" style="margin-bottom:16px">Розкажіть про ваші враження</p>
+            <div class="form-group">
+              <textarea id="review-body" rows="5" placeholder="Що сподобалось? Як прийшла фігурка? Робили подарунок? Як відреагувала людина?" required></textarea>
+            </div>
+
+            <div class="survey-nav-buttons">
+              <button type="button" class="btn btn-secondary btn-review-prev" data-prev="1">← Назад</button>
+              <button type="button" class="btn btn-primary btn-review-next" data-next="3">Далі →</button>
+            </div>
           </div>
 
-          <div class="form-group">
-            <label for="review-email">Email (не публікується)</label>
-            <input type="email" id="review-email" placeholder="email@example.com">
+          <!-- Page 3: Media upload with bonus -->
+          <div class="review-page" data-page="3">
+            <div class="bonus-banner">
+              <div class="bonus-banner-icon">🎁</div>
+              <div class="bonus-banner-text">
+                <strong>Бонус за фото або відео!</strong>
+                <p>Відгук з медіа = додатковий <span class="bonus-highlight">промокод 10%</span> на наступне замовлення 🔥</p>
+              </div>
+            </div>
+
+            <input type="file" id="review-files" accept="image/*,video/*" multiple hidden>
+            <label for="review-files" class="file-upload-drop">
+              <div class="file-upload-icon">📸</div>
+              <p class="file-upload-title">Додати фото або відео</p>
+              <p class="file-upload-hint">До 3 файлів, макс. 15 МБ кожен</p>
+            </label>
+
+            <div class="file-preview-grid" id="file-preview-grid"></div>
+
+            <div class="survey-nav-buttons">
+              <button type="button" class="btn btn-secondary btn-review-prev" data-prev="2">← Назад</button>
+              <button type="button" class="btn btn-primary btn-review-next" data-next="4" id="btn-review-to-contact">Далі →</button>
+            </div>
           </div>
 
-          <div class="form-group" id="review-product-group">
-            <label for="review-product">Який саме товар?</label>
-            <input type="text" id="review-product" placeholder="Назва фігурки / набору">
+          <!-- Page 4: Contact -->
+          <div class="review-page" data-page="4">
+            <p class="subtitle" style="margin-bottom:16px">Куди надіслати ваш промокод?</p>
+
+            <div class="form-group">
+              <label for="review-name">Ваше ім'я *</label>
+              <input type="text" id="review-name" placeholder="Як підписати відгук" required>
+            </div>
+
+            <div class="form-group">
+              <label for="review-contact">Email або телефон</label>
+              <input type="text" id="review-contact" placeholder="email@example.com або +380...">
+            </div>
+
+            <div class="form-group" id="review-product-group">
+              <label for="review-product">Який саме товар? (необов'язково)</label>
+              <input type="text" id="review-product" placeholder="Назва фігурки / набору">
+            </div>
+
+            <input type="hidden" id="review-order">
+
+            <div class="survey-nav-buttons">
+              <button type="button" class="btn btn-secondary btn-review-prev" data-prev="3">← Назад</button>
+              <button type="submit" class="btn btn-accent" id="btn-send-review">
+                ⭐ Надіслати відгук
+              </button>
+            </div>
           </div>
 
-          <div class="form-group">
-            <label for="review-title">Заголовок (необов'язково)</label>
-            <input type="text" id="review-title" placeholder="Коротко — чим сподобалось">
-          </div>
-
-          <div class="form-group">
-            <label for="review-body">Ваш відгук</label>
-            <textarea id="review-body" rows="4" placeholder="Розкажіть, що сподобалось, як зробили подарунок, як прийшла фігурка..." required></textarea>
-          </div>
-
-          <div class="form-group">
-            <label for="review-order">Номер замовлення (якщо пам'ятаєте)</label>
-            <input type="text" id="review-order" placeholder="#BBCDBR...">
-          </div>
-
-          <button type="submit" class="btn btn-accent" id="btn-send-review">
-            ⭐ Надіслати відгук
-          </button>
-          <p class="form-hint" style="margin-top:12px">Відгук проходить модерацію перед публікацією (зазвичай 1 робочий день).</p>
         </form>
       </section>
 
@@ -186,8 +214,22 @@
       <section id="step-success-review" class="step">
         <div class="success-icon">🌟</div>
         <h2>Дякуємо за відгук!</h2>
-        <p class="subtitle">Ваш відгук на модерації — ми опублікуємо його найближчим часом. Це неймовірна підтримка для нашої команди 💛</p>
-        <a href="https://bricktopia.store/" class="btn btn-secondary" target="_blank">
+        <p class="subtitle">Ви неймовірно круті 💛 Ваш відгук зроблений — ми обов'язково надішлемо промокод на Email / Telegram найближчим часом.</p>
+
+        <div class="option-card option-survey">
+          <div class="option-header">
+            <span class="option-number">+</span>
+            <h3>Ще маєте 2 хвилини?</h3>
+          </div>
+          <div class="option-body">
+            <p class="option-desc">Пройдіть коротке опитування — допоможете нам стати ще краще! 🙏</p>
+            <button class="btn btn-secondary" id="btn-show-survey-after-review">
+              📋 Пройти опитування
+            </button>
+          </div>
+        </div>
+
+        <a href="https://bricktopia.store/" class="btn btn-secondary" target="_blank" style="margin-top:12px">
           🌐 Перейти до магазину
         </a>
       </section>
