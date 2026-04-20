@@ -86,7 +86,7 @@
         <h2>Ви зробили наш день! 🥰</h2>
         <p class="subtitle">Кожен відгук — це величезна підтримка для нашої маленької команди. Ви навіть не уявляєте, як це нас мотивує! Оберіть, як ви хочете нас підтримати:</p>
 
-        <!-- Option 1: Judge.me review -->
+        <!-- Option 1: Leave a review on our site -->
         <div class="option-card option-review">
           <div class="option-header">
             <span class="option-number">1</span>
@@ -103,10 +103,9 @@
                 <span>Відгук з <strong>фото або відео</strong> — особливо цінний для нас та інших покупців</span>
               </div>
             </div>
-            <a href="https://judge.me/product_reviews/5d10bc62-b28b-4e1e-9cbb-81ae0d86919a/new?store-review-only=true&source=shareable-link"
-               class="btn btn-accent" target="_blank" id="btn-judgeme">
+            <button class="btn btn-accent" id="btn-show-review">
               ⭐ Залишити відгук
-            </a>
+            </button>
           </div>
         </div>
 
@@ -125,6 +124,72 @@
             </button>
           </div>
         </div>
+      </section>
+
+      <!-- Step 2c: Product review form (replaces Judge.me) -->
+      <section id="step-review" class="step">
+        <button class="btn-back" data-go="positive">← Назад</button>
+        <div class="happy-icon">⭐</div>
+        <h2>Залиште відгук</h2>
+        <p class="subtitle">Ваш відгук з'явиться на сайті поруч із товаром і допоможе іншим клієнтам. Фото дуже вітаються!</p>
+
+        <form id="review-form" class="negative-form">
+          <div class="form-group">
+            <label>Ваша оцінка</label>
+            <div class="stars-container stars-small" id="review-stars">
+              <button type="button" class="star-btn" data-rating="1" aria-label="1"><svg viewBox="0 0 24 24" class="star-icon"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg></button>
+              <button type="button" class="star-btn" data-rating="2" aria-label="2"><svg viewBox="0 0 24 24" class="star-icon"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg></button>
+              <button type="button" class="star-btn" data-rating="3" aria-label="3"><svg viewBox="0 0 24 24" class="star-icon"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg></button>
+              <button type="button" class="star-btn" data-rating="4" aria-label="4"><svg viewBox="0 0 24 24" class="star-icon"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg></button>
+              <button type="button" class="star-btn" data-rating="5" aria-label="5"><svg viewBox="0 0 24 24" class="star-icon"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg></button>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="review-name">Ваше ім'я</label>
+            <input type="text" id="review-name" placeholder="Як підписати відгук" required>
+          </div>
+
+          <div class="form-group">
+            <label for="review-email">Email (не публікується)</label>
+            <input type="email" id="review-email" placeholder="email@example.com">
+          </div>
+
+          <div class="form-group" id="review-product-group">
+            <label for="review-product">Який саме товар?</label>
+            <input type="text" id="review-product" placeholder="Назва фігурки / набору">
+          </div>
+
+          <div class="form-group">
+            <label for="review-title">Заголовок (необов'язково)</label>
+            <input type="text" id="review-title" placeholder="Коротко — чим сподобалось">
+          </div>
+
+          <div class="form-group">
+            <label for="review-body">Ваш відгук</label>
+            <textarea id="review-body" rows="4" placeholder="Розкажіть, що сподобалось, як зробили подарунок, як прийшла фігурка..." required></textarea>
+          </div>
+
+          <div class="form-group">
+            <label for="review-order">Номер замовлення (якщо пам'ятаєте)</label>
+            <input type="text" id="review-order" placeholder="#BBCDBR...">
+          </div>
+
+          <button type="submit" class="btn btn-accent" id="btn-send-review">
+            ⭐ Надіслати відгук
+          </button>
+          <p class="form-hint" style="margin-top:12px">Відгук проходить модерацію перед публікацією (зазвичай 1 робочий день).</p>
+        </form>
+      </section>
+
+      <!-- Success: review submitted -->
+      <section id="step-success-review" class="step">
+        <div class="success-icon">🌟</div>
+        <h2>Дякуємо за відгук!</h2>
+        <p class="subtitle">Ваш відгук на модерації — ми опублікуємо його найближчим часом. Це неймовірна підтримка для нашої команди 💛</p>
+        <a href="https://bricktopia.store/" class="btn btn-secondary" target="_blank">
+          🌐 Перейти до магазину
+        </a>
       </section>
 
       <!-- Step 3: Survey — multi-page -->
@@ -288,10 +353,9 @@
         <h2>Дякуємо за відповіді!</h2>
         <p class="subtitle">Дякуємо, що підтримуєте нашу маленьку команду — це неймовірно цінно для нас! Ваші відповіді допоможуть нам стати ще краще 🙏</p>
         <div class="success-actions">
-          <a href="https://judge.me/product_reviews/5d10bc62-b28b-4e1e-9cbb-81ae0d86919a/new?store-review-only=true&source=shareable-link"
-             class="btn btn-accent" target="_blank">
-            ⭐ Ще й залишити відгук на сайті
-          </a>
+          <button class="btn btn-accent" id="btn-show-review-after-survey">
+            ⭐ Ще й залишити відгук
+          </button>
           <a href="https://bricktopia.store/" class="btn btn-secondary" target="_blank">
             🌐 Перейти до магазину
           </a>

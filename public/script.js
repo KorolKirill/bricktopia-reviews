@@ -7,10 +7,10 @@
 
   // --- Config ---
   const API_BASE = window.REVIEW_API_URL || 'https://platizhka-back.vercel.app';
+  // New public review API (product reviews — replaces Judge.me).
+  // Points to the lost-orders Next.js deployment (dashboard).
+  const REVIEW_API = window.PRODUCT_REVIEW_API || 'https://lost-orders.vercel.app';
   const DEFAULT_STORE_ID = 1;
-
-  const JUDGE_ME_URL =
-    'https://judge.me/product_reviews/5d10bc62-b28b-4e1e-9cbb-81ae0d86919a/new?store-review-only=true&source=shareable-link';
 
   const STAR_LABELS = {
     1: 'Дуже погано 😞',
@@ -28,19 +28,26 @@
     negative: document.getElementById('step-negative'),
     positive: document.getElementById('step-positive'),
     survey: document.getElementById('step-survey'),
+    review: document.getElementById('step-review'),
     successNeg: document.getElementById('step-success-negative'),
     successSurvey: document.getElementById('step-success-survey'),
+    successReview: document.getElementById('step-success-review'),
   };
 
-  const starBtns = document.querySelectorAll('.star-btn');
+  const starBtns = document.querySelectorAll('#step-rating .star-btn');
   const starLabel = document.getElementById('star-label');
   const btnSendNeg = document.getElementById('btn-send-negative');
   const btnShowSurvey = document.getElementById('btn-show-survey');
+  const btnShowReview = document.getElementById('btn-show-review');
+  const btnShowReviewAfterSurvey = document.getElementById('btn-show-review-after-survey');
+  const reviewForm = document.getElementById('review-form');
+  const reviewStarBtns = document.querySelectorAll('#review-stars .star-btn');
   const surveyForm = document.getElementById('survey-form');
   const surveyProgressBar = document.getElementById('survey-progress-bar');
   const surveyStepLabel = document.getElementById('survey-step-label');
 
   let selectedRating = 0;
+  let reviewRating = 0;
   let currentSurveyPage = 1;
 
   // --- Helpers ---
@@ -60,6 +67,8 @@
       customerName: params.get('name') || '',
       customerEmail: params.get('email') || '',
       storeId: params.get('store') || '',
+      productHandle: params.get('product') || '',
+      productTitle: params.get('product_title') || '',
     };
   }
 
@@ -91,25 +100,40 @@
 
   // --- Pre-fill from URL params ---
   function prefill() {
-    const { orderId, customerName, customerEmail } = getUrlParams();
+    const { orderId, customerName, customerEmail, productTitle, productHandle } = getUrlParams();
 
     if (customerName) {
-      const negName = document.getElementById('neg-name');
-      const surveyName = document.getElementById('survey-name');
-      if (negName) negName.value = customerName;
-      if (surveyName) surveyName.value = customerName;
+      ['neg-name', 'survey-name', 'review-name'].forEach((id) => {
+        const el = document.getElementById(id);
+        if (el) el.value = customerName;
+      });
     }
 
     if (customerEmail) {
       const negContact = document.getElementById('neg-contact');
       const surveyContact = document.getElementById('survey-contact');
+      const reviewEmail = document.getElementById('review-email');
       if (negContact) negContact.value = customerEmail;
       if (surveyContact) surveyContact.value = customerEmail;
+      if (reviewEmail) reviewEmail.value = customerEmail;
     }
 
     if (orderId) {
       const negOrder = document.getElementById('neg-order');
+      const revOrder = document.getElementById('review-order');
       if (negOrder) negOrder.value = orderId;
+      if (revOrder) revOrder.value = orderId;
+    }
+
+    // Pre-fill product from URL
+    const productInput = document.getElementById('review-product');
+    const productGroup = document.getElementById('review-product-group');
+    if (productTitle && productInput) {
+      productInput.value = productTitle;
+    }
+    if (productHandle && productTitle && productGroup) {
+      // If product is known from URL, hide the field (we already know what they bought)
+      productGroup.style.display = 'none';
     }
   }
 
@@ -156,6 +180,64 @@
         showStep('positive');
       }
     }, 500);
+  }
+
+  // --- Review-form stars ---
+  function initReviewStars() {
+    function paint(upTo) {
+      reviewStarBtns.forEach((btn) => {
+        const r = parseInt(btn.dataset.rating, 10);
+        btn.classList.toggle('active', r <= upTo);
+      });
+    }
+    reviewStarBtns.forEach((btn) => {
+      const rating = parseInt(btn.dataset.rating, 10);
+      btn.addEventListener('mouseenter', () => paint(Math.max(rating, reviewRating)));
+      btn.addEventListener('mouseleave', () => paint(reviewRating));
+      btn.addEventListener('click', () => {
+        reviewRating = rating;
+        paint(rating);
+      });
+    });
+  }
+
+  function openReviewForm() {
+    // Carry over the rating chosen on step 1 (should be 4 or 5)
+    reviewRating = selectedRating || 5;
+    reviewStarBtns.forEach((btn) => {
+      const r = parseInt(btn.dataset.rating, 10);
+      btn.classList.toggle('active', r <= reviewRating);
+    });
+    showStep('review');
+  }
+
+  async function submitProductReview(data) {
+    const urlP = getUrlParams();
+    const payload = {
+      storeId: getStoreId(),
+      productHandle: urlP.productHandle || null,
+      productTitle: data.productTitle || urlP.productTitle || null,
+      rating: data.rating,
+      title: data.title || null,
+      body: data.body,
+      authorName: data.name,
+      authorEmail: data.email || null,
+      orderId: data.orderId || null,
+      urlParams: urlP,
+    };
+
+    const response = await fetch(`${REVIEW_API}/api/public/reviews/submit`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    });
+
+    if (!response.ok) {
+      const err = await response.json().catch(() => ({}));
+      throw new Error(err.error || 'Server error');
+    }
+
+    return response.json();
   }
 
   // --- Submit to platizhka-back API ---
@@ -264,6 +346,57 @@
       showSurveyPage(1);
     });
 
+    // Show our product-review form (replaces Judge.me link)
+    if (btnShowReview) {
+      btnShowReview.addEventListener('click', openReviewForm);
+    }
+    if (btnShowReviewAfterSurvey) {
+      btnShowReviewAfterSurvey.addEventListener('click', openReviewForm);
+    }
+
+    // Submit product review
+    if (reviewForm) {
+      reviewForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+
+        const name = document.getElementById('review-name').value.trim();
+        const email = document.getElementById('review-email').value.trim();
+        const body = document.getElementById('review-body').value.trim();
+        const title = document.getElementById('review-title').value.trim();
+        const orderId = document.getElementById('review-order').value.trim();
+        const productTitle = document.getElementById('review-product').value.trim();
+
+        if (!reviewRating) {
+          alert('Оберіть оцінку');
+          return;
+        }
+        if (!name || !body) {
+          alert("Заповніть ім'я та текст відгуку");
+          return;
+        }
+
+        const submitBtn = document.getElementById('btn-send-review');
+        setLoading(submitBtn, true);
+        try {
+          await submitProductReview({
+            rating: reviewRating,
+            name,
+            email,
+            body,
+            title,
+            orderId,
+            productTitle,
+          });
+          showStep('successReview');
+        } catch (err) {
+          console.error('Review submit error:', err);
+          alert('Помилка відправки. Спробуйте ще раз.');
+        } finally {
+          setLoading(submitBtn, false);
+        }
+      });
+    }
+
     // Submit survey
     surveyForm.addEventListener('submit', async (e) => {
       e.preventDefault();
@@ -312,6 +445,7 @@
   function init() {
     prefill();
     initStars();
+    initReviewStars();
     initBackButtons();
     initSurveyNav();
     initEvents();

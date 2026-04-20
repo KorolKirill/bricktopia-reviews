@@ -140,6 +140,11 @@ h3 {
   margin-bottom: 16px;
 }
 
+.stars-container.stars-small .star-icon {
+  width: 32px;
+  height: 32px;
+}
+
 .star-btn {
   background: none;
   border: none;
