@@ -395,12 +395,14 @@
       body: JSON.stringify(payload),
     });
 
+    const body = await response.json().catch(() => ({}));
     if (!response.ok) {
-      const err = await response.json().catch(() => ({}));
-      throw new Error(err.error || 'Server error');
+      console.error('[submit review]', response.status, body);
+      const detail = [body.error, body.hint].filter(Boolean).join(' — ');
+      throw new Error(detail || `HTTP ${response.status}`);
     }
 
-    return response.json();
+    return body;
   }
 
   // --- Submit to platizhka-back API ---
@@ -563,7 +565,7 @@
           showStep('successReview');
         } catch (err) {
           console.error('Review submit error:', err);
-          alert('Помилка відправки. Спробуйте ще раз.');
+          alert('Помилка відправки: ' + (err && err.message ? err.message : 'невідома помилка'));
         } finally {
           setLoading(submitBtn, false);
         }
