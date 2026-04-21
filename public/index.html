@@ -135,7 +135,7 @@
             </div>
             <p class="star-label" id="review-rating-label">Оберіть оцінку</p>
 
-            <button type="button" class="btn btn-primary btn-review-next" data-next="2">
+            <button type="button" class="btn btn-primary btn-review-next review-cta-spaced" data-next="2">
               Далі →
             </button>
           </div>
@@ -158,8 +158,8 @@
             <div class="bonus-banner">
               <div class="bonus-banner-icon">🎁</div>
               <div class="bonus-banner-text">
-                <strong>Бонус за фото або відео!</strong>
-                <p>Відгук з медіа = додатковий <span class="bonus-highlight">промокод 10%</span> на наступне замовлення 🔥</p>
+                <strong>Додайте фото або відео!</strong>
+                <p>Ви дуже допоможете нам і іншим людям побачити реальний результат 💛 А ще отримаєте <span class="bonus-highlight">додатковий промокод 10%</span> 🔥</p>
               </div>
             </div>
 
@@ -188,12 +188,12 @@
             </div>
 
             <div class="form-group">
-              <label for="review-contact">Email або телефон</label>
+              <label for="review-contact">Email або телефон <span class="label-optional">— не обов'язково</span></label>
               <input type="text" id="review-contact" placeholder="email@example.com або +380...">
             </div>
 
             <div class="form-group" id="review-product-group">
-              <label for="review-product">Який саме товар? (необов'язково)</label>
+              <label for="review-product">Що ви замовляли? <span class="label-optional">— не обов'язково</span></label>
               <input type="text" id="review-product" placeholder="Назва фігурки / набору">
             </div>
 
@@ -214,7 +214,16 @@
       <section id="step-success-review" class="step">
         <div class="success-icon">🌟</div>
         <h2>Дякуємо за відгук!</h2>
-        <p class="subtitle">Ви неймовірно круті 💛 Ваш відгук зроблений — ми обов'язково надішлемо промокод на Email / Telegram найближчим часом.</p>
+        <p class="subtitle">Ви неймовірно круті 💛 Тримайте ваш подарунок — промокод на знижку на наступне замовлення:</p>
+
+        <div class="promo-card" id="review-promo-card" style="display:none">
+          <p class="promo-card-label">Ваш промокод 🎁</p>
+          <div class="promo-card-row">
+            <code class="promo-card-code" id="review-promo-code">—</code>
+            <button type="button" class="promo-card-copy" id="review-promo-copy">Копіювати</button>
+          </div>
+          <p class="promo-card-hint">Одноразовий. Застосовуй при оформленні наступного замовлення на <a href="https://bricktopia.store/" target="_blank">bricktopia.store</a>.</p>
+        </div>
 
         <div class="option-card option-survey">
           <div class="option-header">

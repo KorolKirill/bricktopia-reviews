@@ -337,6 +337,46 @@
     });
   }
 
+  // --- Show auto-generated promo code on success ---
+  function renderPromoCode(code) {
+    const card = document.getElementById('review-promo-card');
+    const codeEl = document.getElementById('review-promo-code');
+    const copyBtn = document.getElementById('review-promo-copy');
+    if (!card || !codeEl) return;
+
+    if (!code) {
+      card.style.display = 'none';
+      return;
+    }
+
+    codeEl.textContent = code;
+    card.style.display = 'block';
+
+    if (copyBtn && !copyBtn.dataset.bound) {
+      copyBtn.dataset.bound = '1';
+      copyBtn.addEventListener('click', async () => {
+        const value = codeEl.textContent || '';
+        try {
+          await navigator.clipboard.writeText(value);
+        } catch {
+          // Fallback for older browsers
+          const range = document.createRange();
+          range.selectNode(codeEl);
+          window.getSelection().removeAllRanges();
+          window.getSelection().addRange(range);
+          document.execCommand('copy');
+          window.getSelection().removeAllRanges();
+        }
+        copyBtn.textContent = 'Скопійовано ✓';
+        copyBtn.classList.add('copied');
+        setTimeout(() => {
+          copyBtn.textContent = 'Копіювати';
+          copyBtn.classList.remove('copied');
+        }, 2000);
+      });
+    }
+  }
+
   // --- Review pagination nav ---
   function initReviewNav() {
     document.querySelectorAll('.btn-review-next').forEach((btn) => {
@@ -553,7 +593,7 @@
         const submitBtn = document.getElementById('btn-send-review');
         setLoading(submitBtn, true);
         try {
-          await submitProductReview({
+          const result = await submitProductReview({
             rating: reviewRating,
             name,
             contact,
@@ -562,6 +602,7 @@
             productTitle,
             images: uploadedMedia.map((m) => m.url),
           });
+          renderPromoCode(result && result.promoCode);
           showStep('successReview');
         } catch (err) {
           console.error('Review submit error:', err);

@@ -573,6 +573,92 @@ h3 {
   animation: fadeSlide 0.3s ease;
 }
 
+/* Extra breathing room between the rating hint and the "Далі" button */
+.review-cta-spaced {
+  margin-top: 28px;
+}
+
+/* Optional-field hint next to labels */
+.label-optional {
+  color: var(--light-muted);
+  font-weight: 400;
+  font-size: 12px;
+}
+
+/* Promo-code card on success screen */
+.promo-card {
+  background: linear-gradient(135deg, #FFF4D6 0%, #FFE49E 100%);
+  border: 2px dashed #F5B400;
+  border-radius: var(--radius-sm);
+  padding: 18px 20px;
+  margin: 16px 0 20px;
+  text-align: center;
+  box-shadow: 0 6px 18px rgba(245, 180, 0, 0.22);
+}
+
+.promo-card-label {
+  margin: 0 0 8px 0;
+  font-size: 12px;
+  font-weight: 600;
+  color: #6b4a00;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.promo-card-row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.promo-card-code {
+  font-family: 'Rubik', monospace;
+  font-size: 22px;
+  font-weight: 800;
+  color: #4a3200;
+  background: #fff;
+  padding: 8px 16px;
+  border-radius: 8px;
+  letter-spacing: 0.06em;
+  user-select: all;
+}
+
+.promo-card-copy {
+  background: #4a3200;
+  color: #FFD34E;
+  border: none;
+  padding: 8px 14px;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.promo-card-copy:hover {
+  background: #2d1e00;
+  transform: translateY(-1px);
+}
+
+.promo-card-copy.copied {
+  background: #22a06b;
+  color: #fff;
+}
+
+.promo-card-hint {
+  margin: 10px 0 0 0;
+  font-size: 11px;
+  color: #6b4a00;
+  line-height: 1.5;
+}
+
+.promo-card-hint a {
+  color: #4a3200;
+  font-weight: 600;
+}
+
 @keyframes fadeSlide {
   from { opacity: 0; transform: translateY(6px); }
   to   { opacity: 1; transform: translateY(0); }
