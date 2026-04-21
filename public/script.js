@@ -27,6 +27,37 @@
 
   const STORAGE_KEY = 'bricktopia_promo_v1';
 
+  // --- Validation helpers (mirror server-side validation in submit route) ---
+  const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
+  const PHONE_RE = /^\+?[\d\s\-()]{9,20}$/;
+
+  function validateContact(value) {
+    const v = (value || '').trim();
+    if (!v) return "Вкажіть Email або телефон — туди надішлемо промокод";
+    if (EMAIL_RE.test(v)) return null;
+    if (PHONE_RE.test(v)) return null;
+    return "Введіть коректний Email або телефон (+380...)";
+  }
+
+  function validateName(value) {
+    const v = (value || '').trim();
+    if (!v) return "Вкажіть ваше ім'я";
+    if (v.length < 2) return "Ім'я занадто коротке";
+    if (/(.)\1{6,}/.test(v)) return "Ім'я виглядає як випадковий набір символів";
+    if (/https?:\/\/|www\./i.test(v)) return "Посилання в імені не дозволені";
+    return null;
+  }
+
+  function validateReviewBody(value) {
+    const v = (value || '').trim();
+    if (!v) return "Напишіть текст відгуку";
+    if (v.length < 5) return "Відгук занадто короткий (мінімум 5 символів)";
+    if (/(.)\1{6,}/.test(v)) return "Відгук виглядає як випадковий набір символів";
+    if (/^\d+$/.test(v)) return "Відгук має містити текст, а не лише цифри";
+    if (/https?:\/\/|www\.[a-z]/i.test(v)) return "Посилання в тексті не дозволені";
+    return null;
+  }
+
   // --- DOM refs ---
   const steps = {
     rating: document.getElementById('step-rating'),
@@ -519,11 +550,8 @@
           return;
         }
         if (currentReviewPage === 2) {
-          const body = document.getElementById('review-body').value.trim();
-          if (!body) {
-            alert('Напишіть, будь ласка, текст відгуку');
-            return;
-          }
+          const err = validateReviewBody(document.getElementById('review-body').value);
+          if (err) { alert(err); return; }
         }
         if (currentReviewPage === 3) {
           // Block nav while any file is still uploading
@@ -727,13 +755,22 @@
           showReviewPage(1);
           return;
         }
-        if (!body) {
-          alert('Напишіть, будь ласка, текст відгуку');
+        const bodyErr = validateReviewBody(body);
+        if (bodyErr) {
+          alert(bodyErr);
           showReviewPage(2);
           return;
         }
-        if (!name) {
-          alert("Вкажіть, як підписати відгук");
+        const nameErr = validateName(name);
+        if (nameErr) {
+          alert(nameErr);
+          showReviewPage(4);
+          return;
+        }
+        const contactErr = validateContact(contact);
+        if (contactErr) {
+          alert(contactErr);
+          showReviewPage(4);
           return;
         }
 
