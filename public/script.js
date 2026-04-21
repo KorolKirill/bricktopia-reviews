@@ -20,7 +20,7 @@
     5: 'Чудово! 🤩',
   };
 
-  const TOTAL_SURVEY_PAGES = 6;
+  const TOTAL_SURVEY_PAGES = 7;
   const TOTAL_REVIEW_PAGES = 4;
   const MAX_FILES = 3;
   const MAX_FILE_SIZE = 15 * 1024 * 1024; // 15 MB
@@ -248,6 +248,21 @@
     return (bytes / 1024 / 1024).toFixed(1) + ' МБ';
   }
 
+  // Enable/disable the "Далі →" button on the media step based on
+  // whether any file is still uploading. Also dims the dropzone label
+  // so the state is visible.
+  function updateUploadBlockingState() {
+    const uploading = uploadedMedia.some((m) => m.uploading);
+    const nextBtn = document.querySelector('.review-page[data-page="3"] .btn-review-next');
+    if (nextBtn) {
+      nextBtn.disabled = uploading;
+      nextBtn.classList.toggle('is-uploading', uploading);
+      nextBtn.textContent = uploading ? 'Завантаження...' : 'Далі →';
+    }
+    const drop = document.querySelector('.file-upload-drop');
+    if (drop) drop.classList.toggle('is-busy', uploading);
+  }
+
   function renderFilePreview() {
     if (!filePreviewGrid) return;
     filePreviewGrid.innerHTML = '';
@@ -282,6 +297,7 @@
       remove.addEventListener('click', () => {
         uploadedMedia.splice(i, 1);
         renderFilePreview();
+        updateUploadBlockingState();
       });
       item.appendChild(remove);
 
@@ -326,6 +342,7 @@
         const placeholder = { url: localUrl, contentType: file.type, name: file.name, uploading: true };
         uploadedMedia.push(placeholder);
         renderFilePreview();
+        updateUploadBlockingState();
 
         try {
           const result = await uploadFile(file);
@@ -333,6 +350,7 @@
           if (idx !== -1) {
             uploadedMedia[idx] = { url: result.url, contentType: result.contentType || file.type, name: file.name };
             renderFilePreview();
+        updateUploadBlockingState();
           }
         } catch (err) {
           console.error('Upload error:', err);
@@ -340,6 +358,7 @@
           const idx = uploadedMedia.indexOf(placeholder);
           if (idx !== -1) uploadedMedia.splice(idx, 1);
           renderFilePreview();
+        updateUploadBlockingState();
         }
       }
     });
@@ -774,6 +793,57 @@
         return txt.trim() ? `other: ${txt.trim()}` : 'other';
       };
 
+      // Human-readable labels for the extra rating answers so admins
+      // reading the dashboard aren't guessing what "very_easy" means.
+      const CONV_LABELS = {
+        very_easy: 'Дуже зручно',
+        ok: 'Нормально',
+        hard: 'Було складно',
+        didnt_use: 'Не користувався',
+      };
+      const PARTS_LABELS = {
+        yes: 'Так, все було',
+        mostly: 'Здебільшого так',
+        no: 'Ні, не вистачило',
+      };
+      const WEB_LABELS = {
+        excellent: 'Дуже зручний',
+        good: 'Добрий',
+        ok: 'Нормальний',
+        bad: 'Важко користуватись',
+      };
+      const labeledLine = (label, raw, map) => {
+        if (!raw) return '';
+        const pretty = (map && map[raw]) || raw;
+        return `${label}: ${pretty}`;
+      };
+
+      const constructorConvenience = getRadio('constructor_convenience');
+      const partsFound = getRadio('parts_found');
+      const websiteConvenience = getRadio('website_convenience');
+      const constructorChange = (document.getElementById('survey-constructor-change').value || '').trim();
+      const partsMissing = (document.getElementById('survey-parts-missing').value || '').trim();
+      const accessories = (document.getElementById('survey-accessories').value || '').trim();
+      const generalImprove = (document.getElementById('survey-improve').value || '').trim();
+      const generalWishlist = (document.getElementById('survey-wishlist').value || '').trim();
+
+      // Backend schema only has `improve` / `wishlist` text columns. Pack
+      // the new structured answers into them as labeled lines so every
+      // answer survives to the admin dashboard without a schema change.
+      const improveParts = [
+        labeledLine('Конструктор', constructorConvenience, CONV_LABELS),
+        labeledLine('Сайт', websiteConvenience, WEB_LABELS),
+        constructorChange ? `Що змінити в конструкторі: ${constructorChange}` : '',
+        generalImprove ? `Інше: ${generalImprove}` : '',
+      ].filter(Boolean).join('\n');
+
+      const wishlistParts = [
+        labeledLine('Знайдено деталей', partsFound, PARTS_LABELS),
+        partsMissing ? `Бракує деталей: ${partsMissing}` : '',
+        accessories ? `Аксесуари: ${accessories}` : '',
+        generalWishlist ? `Бажані товари: ${generalWishlist}` : '',
+      ].filter(Boolean).join('\n');
+
       const submitBtn = surveyForm.querySelector('button[type="submit"]');
       setLoading(submitBtn, true);
       try {
@@ -786,9 +856,9 @@
           reorder: getRadio('reorder'),
           delivery_speed: withOther('delivery_speed', 'delivery-other'),
           quality: getRadio('quality'),
-          packaging: getRadio('packaging'),
-          improve: document.getElementById('survey-improve').value.trim(),
-          wishlist: document.getElementById('survey-wishlist').value.trim(),
+          packaging: withOther('packaging', 'packaging-other'),
+          improve: improveParts,
+          wishlist: wishlistParts,
         });
         // Upgrade the stored promo from 5% → 10% as the reward for
         // completing the survey, then render the survey-success card.

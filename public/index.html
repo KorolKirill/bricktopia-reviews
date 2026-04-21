@@ -166,10 +166,10 @@
           <!-- Page 3: Media upload with bonus -->
           <div class="review-page" data-page="3">
             <div class="bonus-banner">
-              <div class="bonus-banner-icon">🎁</div>
+              <div class="bonus-banner-icon">💛</div>
               <div class="bonus-banner-text">
                 <strong>Додайте фото або відео!</strong>
-                <p>Ви дуже допоможете нам і іншим людям побачити реальний результат 💛 А ще отримаєте <span class="bonus-highlight">додатковий промокод 10%</span> 🔥</p>
+                <p>Ви дуже допоможете нам і іншим покупцям побачити реальний результат. Відгуки з медіа — найцінніші для нас 🙏</p>
               </div>
             </div>
 
@@ -349,12 +349,14 @@
           <div class="survey-page" data-page="4">
             <div class="form-group">
               <label>Як вам пакування?</label>
-              <div class="radio-group">
+              <div class="radio-group" data-other-input="packaging-other">
                 <label class="radio-label"><input type="radio" name="packaging" value="excellent"> Супер!</label>
                 <label class="radio-label"><input type="radio" name="packaging" value="good"> Добре</label>
                 <label class="radio-label"><input type="radio" name="packaging" value="ok"> Нормальне</label>
                 <label class="radio-label"><input type="radio" name="packaging" value="bad"> Погане</label>
+                <label class="radio-label"><input type="radio" name="packaging" value="other"> Інше</label>
               </div>
+              <input type="text" id="packaging-other" class="other-input" placeholder="Що б ви змінили у пакуванні?" style="display:none">
             </div>
 
             <div class="form-group">
@@ -374,8 +376,68 @@
             </div>
           </div>
 
-          <!-- Page 5: Reorder & Recommend -->
+          <!-- Page 5: Constructor experience -->
           <div class="survey-page" data-page="5">
+            <div class="form-group">
+              <label>Чи зручно було користуватись конструктором?</label>
+              <div class="radio-group">
+                <label class="radio-label"><input type="radio" name="constructor_convenience" value="very_easy"> Дуже зручно 👌</label>
+                <label class="radio-label"><input type="radio" name="constructor_convenience" value="ok"> Нормально</label>
+                <label class="radio-label"><input type="radio" name="constructor_convenience" value="hard"> Було складно</label>
+                <label class="radio-label"><input type="radio" name="constructor_convenience" value="didnt_use"> Не користувався</label>
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label>Чи знайшли ви в конструкторі всі деталі, які хотіли?</label>
+              <div class="radio-group">
+                <label class="radio-label"><input type="radio" name="parts_found" value="yes"> Так, все було</label>
+                <label class="radio-label"><input type="radio" name="parts_found" value="mostly"> Здебільшого так</label>
+                <label class="radio-label"><input type="radio" name="parts_found" value="no"> Ні, не вистачило</label>
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label for="survey-constructor-change">Що б ви змінили або покращили в конструкторі?</label>
+              <textarea id="survey-constructor-change" rows="3" placeholder="Напр. розділи, пошук, категорії..."></textarea>
+            </div>
+
+            <div class="survey-nav-buttons">
+              <button type="button" class="btn btn-secondary btn-survey-prev" data-prev="4">← Назад</button>
+              <button type="button" class="btn btn-primary btn-survey-next" data-next="6">Далі →</button>
+            </div>
+          </div>
+
+          <!-- Page 6: Website & missing parts/accessories -->
+          <div class="survey-page" data-page="6">
+            <div class="form-group">
+              <label>Наскільки зручний наш сайт в цілому?</label>
+              <div class="radio-group">
+                <label class="radio-label"><input type="radio" name="website_convenience" value="excellent"> Дуже зручний</label>
+                <label class="radio-label"><input type="radio" name="website_convenience" value="good"> Добрий</label>
+                <label class="radio-label"><input type="radio" name="website_convenience" value="ok"> Нормальний</label>
+                <label class="radio-label"><input type="radio" name="website_convenience" value="bad"> Важко користуватись</label>
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label for="survey-parts-missing">Яких деталей нам не вистачає в конструкторі?</label>
+              <textarea id="survey-parts-missing" rows="3" placeholder="Напр. окуляри-авіатори, кашкети, шарфи..."></textarea>
+            </div>
+
+            <div class="form-group">
+              <label for="survey-accessories">Які аксесуари ви б хотіли бачити в магазині?</label>
+              <textarea id="survey-accessories" rows="3" placeholder="Підставки, брелоки, кулони, рамки..."></textarea>
+            </div>
+
+            <div class="survey-nav-buttons">
+              <button type="button" class="btn btn-secondary btn-survey-prev" data-prev="5">← Назад</button>
+              <button type="button" class="btn btn-primary btn-survey-next" data-next="7">Далі →</button>
+            </div>
+          </div>
+
+          <!-- Page 7: Overall (reorder / recommend / wishes) -->
+          <div class="survey-page" data-page="7">
             <div class="form-group">
               <label>Чи замовляли б ви у нас знову?</label>
               <div class="radio-group">
@@ -394,26 +456,18 @@
               </div>
             </div>
 
-            <div class="survey-nav-buttons">
-              <button type="button" class="btn btn-secondary btn-survey-prev" data-prev="4">← Назад</button>
-              <button type="button" class="btn btn-primary btn-survey-next" data-next="6">Далі →</button>
-            </div>
-          </div>
-
-          <!-- Page 6: Wishes -->
-          <div class="survey-page" data-page="6">
             <div class="form-group">
-              <label for="survey-improve">Що ми можемо покращити?</label>
-              <textarea id="survey-improve" rows="3" placeholder="Ваші побажання та ідеї..."></textarea>
+              <label for="survey-improve">Що ще ми можемо покращити?</label>
+              <textarea id="survey-improve" rows="3" placeholder="Будь-які інші побажання та ідеї..."></textarea>
             </div>
 
             <div class="form-group">
-              <label for="survey-wishlist">Які товари ви хотіли б бачити в нашому магазині?</label>
-              <textarea id="survey-wishlist" rows="3" placeholder="Фігурки, набори, аксесуари..."></textarea>
+              <label for="survey-wishlist">Які нові товари ви хотіли б бачити?</label>
+              <textarea id="survey-wishlist" rows="3" placeholder="Фігурки, набори..."></textarea>
             </div>
 
             <div class="survey-nav-buttons">
-              <button type="button" class="btn btn-secondary btn-survey-prev" data-prev="5">← Назад</button>
+              <button type="button" class="btn btn-secondary btn-survey-prev" data-prev="6">← Назад</button>
               <button type="submit" class="btn btn-accent">
                 🎁 Покращити промокод до 10%
               </button>
