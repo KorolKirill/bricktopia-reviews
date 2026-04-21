@@ -539,6 +539,92 @@
     }
   }
 
+  // --- Marketing opt-in on the success screen ---
+  // The checkbox asks if the customer wants to subscribe to launches/sales.
+  // If they tick yes and we already have their email (from the review),
+  // subscribe silently. If not, reveal an email input so they can type one.
+  let optinSubmittedReviewId = null;
+
+  function initOptin() {
+    const consent = document.getElementById('optin-consent');
+    const emailWrap = document.getElementById('optin-email-wrap');
+    const emailInput = document.getElementById('optin-email');
+    const subscribeBtn = document.getElementById('btn-optin-subscribe');
+    const doneMsg = document.getElementById('optin-done');
+    if (!consent || !emailWrap || !subscribeBtn) return;
+
+    async function doSubscribe(email) {
+      const clean = (email || '').trim();
+      if (!EMAIL_RE.test(clean)) {
+        alert('Введіть коректний Email');
+        if (emailInput) emailInput.focus();
+        return;
+      }
+      subscribeBtn.disabled = true;
+      try {
+        const res = await fetch(`${REVIEW_API}/api/public/subscribers`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            storeId: getStoreId(),
+            email: clean,
+            name: (document.getElementById('review-name') || {}).value || (storedPromo && storedPromo.savedName) || null,
+            reviewId: optinSubmittedReviewId,
+            source: 'review_page',
+          }),
+        });
+        const body = await res.json().catch(() => ({}));
+        if (!res.ok) {
+          console.error('[subscribe]', res.status, body);
+          alert('Не вдалось підписати: ' + ((body.error || '') + (body.hint ? ' — ' + body.hint : '')));
+          return;
+        }
+        consent.disabled = true;
+        emailWrap.style.display = 'none';
+        if (doneMsg) doneMsg.style.display = 'block';
+      } catch (err) {
+        console.error(err);
+        alert('Помилка мережі. Спробуйте ще раз.');
+      } finally {
+        subscribeBtn.disabled = false;
+      }
+    }
+
+    consent.addEventListener('change', () => {
+      if (!consent.checked) {
+        emailWrap.style.display = 'none';
+        return;
+      }
+      // Already have email from review? Subscribe silently.
+      const reviewContact = ((document.getElementById('review-contact') || {}).value || '').trim();
+      if (EMAIL_RE.test(reviewContact)) {
+        doSubscribe(reviewContact);
+        return;
+      }
+      // No email — ask for one.
+      emailWrap.style.display = 'flex';
+      if (emailInput) {
+        if (!emailInput.value && storedPromo && storedPromo.savedContact && EMAIL_RE.test(storedPromo.savedContact)) {
+          emailInput.value = storedPromo.savedContact;
+        }
+        emailInput.focus();
+      }
+    });
+
+    subscribeBtn.addEventListener('click', () => {
+      doSubscribe(emailInput ? emailInput.value : '');
+    });
+  }
+
+  function resetOptin() {
+    const consent = document.getElementById('optin-consent');
+    const emailWrap = document.getElementById('optin-email-wrap');
+    const doneMsg = document.getElementById('optin-done');
+    if (consent) { consent.checked = false; consent.disabled = false; }
+    if (emailWrap) emailWrap.style.display = 'none';
+    if (doneMsg) doneMsg.style.display = 'none';
+  }
+
   // --- Review pagination nav ---
   function initReviewNav() {
     document.querySelectorAll('.btn-review-next').forEach((btn) => {
@@ -797,6 +883,8 @@
             saveStoredPromo({ savedName: name, savedContact: contact });
             setPromoFromReview(result.promoCode);
           }
+          optinSubmittedReviewId = (result && result.id) || null;
+          resetOptin();
           postToHost('review-submitted', {
             rating: reviewRating,
             promoCode: result && result.promoCode,
@@ -957,6 +1045,7 @@
     initBackButtons();
     initSurveyNav();
     initOtherInputs();
+    initOptin();
     initEvents();
   }
 
