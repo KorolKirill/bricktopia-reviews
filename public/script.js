@@ -33,10 +33,11 @@
 
   function validateContact(value) {
     const v = (value || '').trim();
-    if (!v) return "Вкажіть Email або телефон — туди надішлемо промокод";
+    // Optional — empty is valid (we just won't send the promo then).
+    if (!v) return null;
     if (EMAIL_RE.test(v)) return null;
     if (PHONE_RE.test(v)) return null;
-    return "Введіть коректний Email або телефон (+380...)";
+    return "Введіть коректний Email або телефон (або залиште поле порожнім)";
   }
 
   function validateName(value) {
