@@ -797,6 +797,11 @@
             saveStoredPromo({ savedName: name, savedContact: contact });
             setPromoFromReview(result.promoCode);
           }
+          postToHost('review-submitted', {
+            rating: reviewRating,
+            promoCode: result && result.promoCode,
+            hasMedia: uploadedMedia.length > 0,
+          });
           showStep('successReview');
         } catch (err) {
           console.error('Review submit error:', err);
@@ -902,6 +907,10 @@
         // completing the survey, then render the survey-success card.
         await upgradeStoredPromo();
         renderPromoCard('survey');
+        postToHost('survey-submitted', {
+          promoCode: storedPromo && storedPromo.code,
+          promoPercent: storedPromo && storedPromo.percent,
+        });
         showStep('successSurvey');
       } catch (e) {
         console.error('Submit error:', e);
@@ -912,8 +921,31 @@
     });
   }
 
+  // --- Embed mode (iframe on Shopify) ---
+  function isEmbedMode() {
+    if (location.pathname === '/embed' || location.pathname === '/embed.html') return true;
+    const params = new URLSearchParams(location.search);
+    return params.get('embed') === '1' || window.self !== window.top;
+  }
+
+  // Notify the host page when something meaningful happens, so it can
+  // e.g. close the popup after a successful submit.
+  function postToHost(type, payload) {
+    if (window.self === window.top) return;
+    try {
+      window.parent.postMessage({ source: 'bricktopia-reviews', type, ...payload }, '*');
+    } catch {
+      /* ignore — cross-origin postMessage failures are non-fatal */
+    }
+  }
+
   // --- Init ---
   function init() {
+    if (isEmbedMode()) {
+      document.body.classList.add('is-embed');
+      postToHost('ready', {});
+    }
+
     storedPromo = loadStoredPromo();
     renderPromoBar();
 
