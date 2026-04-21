@@ -205,7 +205,12 @@
 
             <div class="form-group" id="review-product-group">
               <label for="review-product">Що ви замовляли? <span class="label-optional">— не обов'язково</span></label>
-              <input type="text" id="review-product" placeholder="Назва фігурки / набору">
+              <select id="review-product" class="select-input">
+                <option value="">— Оберіть —</option>
+                <option value="Фігурки в рамці">Фігурки в рамці</option>
+                <option value="Фігурки на брелку або без">Фігурки на брелку або без</option>
+                <option value="Інше">Інше</option>
+              </select>
             </div>
 
             <input type="hidden" id="review-order">
