@@ -1027,10 +1027,35 @@
     }
   }
 
+  // When the form is embedded as a widget on the site (not reached via
+  // the post-order email), we can't assume the visitor actually ordered
+  // anything. Swap out copy that says "дякуємо за замовлення" / references
+  // ordering for neutral review-leaving wording.
+  function applyEmbedCopy() {
+    const ratingH1 = document.querySelector('#step-rating h1');
+    if (ratingH1) ratingH1.textContent = 'Залиште відгук про Bricktopia 💛';
+
+    const ratingSubtitle = document.querySelector('#step-rating .subtitle');
+    if (ratingSubtitle) {
+      ratingSubtitle.textContent =
+        'Ми — невелика українська команда, яка створює фігурки з любов\'ю. Ваша думка дуже багато для нас значить і допомагає нам ставати кращими!';
+    }
+
+    const negativeH2 = document.querySelector('#step-negative h2');
+    if (negativeH2) negativeH2.textContent = 'Нам важливо почути вас';
+
+    const negativeSubtitle = document.querySelector('#step-negative .subtitle');
+    if (negativeSubtitle) {
+      negativeSubtitle.textContent =
+        'Ваша думка дуже важлива для нас. Розкажіть, що саме вам не сподобалось — ми обов\'язково розберемось.';
+    }
+  }
+
   // --- Init ---
   function init() {
     if (isEmbedMode()) {
       document.body.classList.add('is-embed');
+      applyEmbedCopy();
       postToHost('ready', {});
     }
 
