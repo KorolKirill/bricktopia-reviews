@@ -20,10 +20,12 @@
     5: 'Чудово! 🤩',
   };
 
-  const TOTAL_SURVEY_PAGES = 3;
+  const TOTAL_SURVEY_PAGES = 6;
   const TOTAL_REVIEW_PAGES = 4;
   const MAX_FILES = 3;
   const MAX_FILE_SIZE = 15 * 1024 * 1024; // 15 MB
+
+  const STORAGE_KEY = 'bricktopia_promo_v1';
 
   // --- DOM refs ---
   const steps = {
@@ -58,6 +60,12 @@
   let currentSurveyPage = 1;
   let currentReviewPage = 1;
   let uploadedMedia = []; // [{ url, contentType, name }]
+  // true once the user enters the survey from the review success step —
+  // means the survey "Назад" button should return them to the success
+  // (promo) screen, not to the positive/rating screen.
+  let surveyEnteredFromReview = false;
+  // Mirrors localStorage so we don't hit storage on every keystroke
+  let storedPromo = null; // { code, percent, savedName, savedContact }
 
   // --- Helpers ---
   function showStep(name) {
@@ -337,43 +345,146 @@
     });
   }
 
-  // --- Show auto-generated promo code on success ---
-  function renderPromoCode(code) {
-    const card = document.getElementById('review-promo-card');
-    const codeEl = document.getElementById('review-promo-code');
-    const copyBtn = document.getElementById('review-promo-copy');
+  // --- Promo storage ---
+  function loadStoredPromo() {
+    try {
+      const raw = localStorage.getItem(STORAGE_KEY);
+      if (!raw) return null;
+      const parsed = JSON.parse(raw);
+      if (!parsed || !parsed.code) return null;
+      return parsed;
+    } catch {
+      return null;
+    }
+  }
+
+  function saveStoredPromo(patch) {
+    storedPromo = Object.assign({}, storedPromo || {}, patch);
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(storedPromo));
+    } catch {
+      // quota / privacy mode — just ignore; banner lasts for the session
+    }
+  }
+
+  function bindCopyButton(btn, codeEl) {
+    if (!btn || btn.dataset.bound) return;
+    btn.dataset.bound = '1';
+    const original = btn.textContent;
+    btn.addEventListener('click', async () => {
+      const value = codeEl.textContent || '';
+      try {
+        await navigator.clipboard.writeText(value);
+      } catch {
+        const range = document.createRange();
+        range.selectNode(codeEl);
+        window.getSelection().removeAllRanges();
+        window.getSelection().addRange(range);
+        document.execCommand('copy');
+        window.getSelection().removeAllRanges();
+      }
+      btn.textContent = 'Скопійовано ✓';
+      btn.classList.add('copied');
+      setTimeout(() => {
+        btn.textContent = original;
+        btn.classList.remove('copied');
+      }, 2000);
+    });
+  }
+
+  // --- Floating promo bar (visible on every page load once issued) ---
+  function renderPromoBar() {
+    const bar = document.getElementById('promo-bar');
+    const codeEl = document.getElementById('promo-bar-code');
+    const percentEl = document.getElementById('promo-bar-percent');
+    const copyBtn = document.getElementById('promo-bar-copy');
+    const closeBtn = document.getElementById('promo-bar-close');
+    if (!bar || !codeEl) return;
+
+    if (!storedPromo || !storedPromo.code) {
+      bar.style.display = 'none';
+      return;
+    }
+
+    codeEl.textContent = storedPromo.code;
+    if (percentEl) percentEl.textContent = (storedPromo.percent || 5) + '%';
+    bar.style.display = 'block';
+
+    bindCopyButton(copyBtn, codeEl);
+
+    if (closeBtn && !closeBtn.dataset.bound) {
+      closeBtn.dataset.bound = '1';
+      closeBtn.addEventListener('click', () => {
+        bar.style.display = 'none';
+      });
+    }
+  }
+
+  // --- Fill the promo cards on the success screens ---
+  function renderPromoCard(which) {
+    // which = 'review' | 'survey'
+    const ids = {
+      review: { card: 'review-promo-card', code: 'review-promo-code', copy: 'review-promo-copy', percent: 'review-promo-percent' },
+      survey: { card: 'survey-promo-card', code: 'survey-promo-code', copy: 'survey-promo-copy' },
+    }[which] || {};
+    const card = document.getElementById(ids.card);
+    const codeEl = document.getElementById(ids.code);
+    const copyBtn = document.getElementById(ids.copy);
     if (!card || !codeEl) return;
 
-    if (!code) {
+    if (!storedPromo || !storedPromo.code) {
       card.style.display = 'none';
       return;
     }
 
-    codeEl.textContent = code;
+    codeEl.textContent = storedPromo.code;
+    if (ids.percent) {
+      const pEl = document.getElementById(ids.percent);
+      if (pEl) pEl.textContent = (storedPromo.percent || 5) + '%';
+    }
     card.style.display = 'block';
+    bindCopyButton(copyBtn, codeEl);
 
-    if (copyBtn && !copyBtn.dataset.bound) {
-      copyBtn.dataset.bound = '1';
-      copyBtn.addEventListener('click', async () => {
-        const value = codeEl.textContent || '';
-        try {
-          await navigator.clipboard.writeText(value);
-        } catch {
-          // Fallback for older browsers
-          const range = document.createRange();
-          range.selectNode(codeEl);
-          window.getSelection().removeAllRanges();
-          window.getSelection().addRange(range);
-          document.execCommand('copy');
-          window.getSelection().removeAllRanges();
-        }
-        copyBtn.textContent = 'Скопійовано ✓';
-        copyBtn.classList.add('copied');
-        setTimeout(() => {
-          copyBtn.textContent = 'Копіювати';
-          copyBtn.classList.remove('copied');
-        }, 2000);
+    // Swap the "improve promo" offer for an "already upgraded" badge
+    // once we've upgraded to 10%.
+    if (which === 'review') {
+      const offerCard = document.getElementById('offer-survey-card');
+      const upgradedBadge = document.getElementById('promo-upgraded-badge');
+      const upgraded = Number(storedPromo.percent) >= 10;
+      if (offerCard) offerCard.style.display = upgraded ? 'none' : 'block';
+      if (upgradedBadge) upgradedBadge.style.display = upgraded ? 'block' : 'none';
+    }
+  }
+
+  // Entry point after submit: save + update all three spots
+  function setPromoFromReview(code) {
+    if (!code) return;
+    saveStoredPromo({ code, percent: 5 });
+    renderPromoBar();
+    renderPromoCard('review');
+  }
+
+  async function upgradeStoredPromo() {
+    if (!storedPromo || !storedPromo.code) return;
+    try {
+      const res = await fetch(`${REVIEW_API}/api/public/reviews/upgrade-promo`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ storeId: getStoreId(), code: storedPromo.code }),
       });
+      const body = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        console.error('[upgrade-promo]', res.status, body);
+        return;
+      }
+      if (body.discountValue) {
+        saveStoredPromo({ percent: Number(body.discountValue) });
+        renderPromoBar();
+        renderPromoCard('review');
+        renderPromoCard('survey');
+      }
+    } catch (err) {
+      console.error('Upgrade error:', err);
     }
   }
 
@@ -483,6 +594,12 @@
   function initBackButtons() {
     document.querySelectorAll('.btn-back').forEach((btn) => {
       btn.addEventListener('click', () => {
+        // Survey → if we came from review success, return there (with promo),
+        // not to the positive step.
+        if (btn.id === 'survey-back-btn' && surveyEnteredFromReview) {
+          showStep('successReview');
+          return;
+        }
         const target = btn.dataset.go;
         if (target) showStep(target);
       });
@@ -493,15 +610,6 @@
   function initSurveyNav() {
     document.querySelectorAll('.btn-survey-next').forEach((btn) => {
       btn.addEventListener('click', () => {
-        // Validate page 1 required fields
-        if (currentSurveyPage === 1) {
-          const name = document.getElementById('survey-name').value.trim();
-          const contact = document.getElementById('survey-contact').value.trim();
-          if (!name || !contact) {
-            alert("Будь ласка, заповніть ім'я та контакт");
-            return;
-          }
-        }
         showSurveyPage(parseInt(btn.dataset.next, 10));
       });
     });
@@ -509,6 +617,22 @@
     document.querySelectorAll('.btn-survey-prev').forEach((btn) => {
       btn.addEventListener('click', () => {
         showSurveyPage(parseInt(btn.dataset.prev, 10));
+      });
+    });
+  }
+
+  // Reveal the free-text field when "Інше" is picked in a radio group.
+  function initOtherInputs() {
+    document.querySelectorAll('.radio-group[data-other-input]').forEach((group) => {
+      const inputId = group.dataset.otherInput;
+      const input = document.getElementById(inputId);
+      if (!input) return;
+      group.querySelectorAll('input[type="radio"]').forEach((radio) => {
+        radio.addEventListener('change', () => {
+          const isOther = radio.checked && radio.value === 'other';
+          input.style.display = isOther ? 'block' : 'none';
+          if (isOther) setTimeout(() => input.focus(), 50);
+        });
       });
     });
   }
@@ -553,6 +677,16 @@
     // Offer the survey AFTER a positive review is submitted
     if (btnShowSurveyAfterReview) {
       btnShowSurveyAfterReview.addEventListener('click', () => {
+        // Carry name/contact from the review step into the hidden survey
+        // fields so the downstream API still gets them without asking again.
+        const revName = (document.getElementById('review-name') || {}).value || '';
+        const revContact = (document.getElementById('review-contact') || {}).value || '';
+        const svName = document.getElementById('survey-name');
+        const svContact = document.getElementById('survey-contact');
+        if (svName) svName.value = revName || (storedPromo && storedPromo.savedName) || '';
+        if (svContact) svContact.value = revContact || (storedPromo && storedPromo.savedContact) || '';
+
+        surveyEnteredFromReview = true;
         showStep('survey');
         showSurveyPage(1);
       });
@@ -602,7 +736,10 @@
             productTitle,
             images: uploadedMedia.map((m) => m.url),
           });
-          renderPromoCode(result && result.promoCode);
+          if (result && result.promoCode) {
+            saveStoredPromo({ savedName: name, savedContact: contact });
+            setPromoFromReview(result.promoCode);
+          }
           showStep('successReview');
         } catch (err) {
           console.error('Review submit error:', err);
@@ -617,18 +754,24 @@
     surveyForm.addEventListener('submit', async (e) => {
       e.preventDefault();
 
-      const name = document.getElementById('survey-name').value.trim();
-      const contact = document.getElementById('survey-contact').value.trim();
-
-      if (!name || !contact) {
-        alert("Будь ласка, заповніть ім'я та контакт");
-        showSurveyPage(1);
-        return;
-      }
+      // Name/contact are carried over from the review step (hidden inputs).
+      // Fall back to stored values if somehow missing.
+      const name = (document.getElementById('survey-name').value.trim()) ||
+        (storedPromo && storedPromo.savedName) || '';
+      const contact = (document.getElementById('survey-contact').value.trim()) ||
+        (storedPromo && storedPromo.savedContact) || '';
 
       const getRadio = (radioName) => {
         const el = document.querySelector(`input[name="${radioName}"]:checked`);
         return el ? el.value : '';
+      };
+
+      // Inline other-field values are appended to the chosen radio value
+      const withOther = (radioName, otherInputId) => {
+        const v = getRadio(radioName);
+        if (v !== 'other') return v;
+        const txt = (document.getElementById(otherInputId) || {}).value || '';
+        return txt.trim() ? `other: ${txt.trim()}` : 'other';
       };
 
       const submitBtn = surveyForm.querySelector('button[type="submit"]');
@@ -639,14 +782,18 @@
           rating: selectedRating,
           name,
           contact,
-          source: getRadio('source'),
+          source: withOther('source', 'source-other'),
           reorder: getRadio('reorder'),
-          delivery_speed: getRadio('delivery_speed'),
+          delivery_speed: withOther('delivery_speed', 'delivery-other'),
           quality: getRadio('quality'),
           packaging: getRadio('packaging'),
           improve: document.getElementById('survey-improve').value.trim(),
           wishlist: document.getElementById('survey-wishlist').value.trim(),
         });
+        // Upgrade the stored promo from 5% → 10% as the reward for
+        // completing the survey, then render the survey-success card.
+        await upgradeStoredPromo();
+        renderPromoCard('survey');
         showStep('successSurvey');
       } catch (e) {
         console.error('Submit error:', e);
@@ -659,6 +806,9 @@
 
   // --- Init ---
   function init() {
+    storedPromo = loadStoredPromo();
+    renderPromoBar();
+
     prefill();
     initStars();
     initReviewStars();
@@ -666,6 +816,7 @@
     initFileUpload();
     initBackButtons();
     initSurveyNav();
+    initOtherInputs();
     initEvents();
   }
 

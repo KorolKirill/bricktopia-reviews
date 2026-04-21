@@ -10,6 +10,16 @@
   <link rel="stylesheet" href="/style.css">
 </head>
 <body>
+  <!-- Persistent promo banner — appears if the user already got a promo code in this browser -->
+  <div class="promo-bar" id="promo-bar" style="display:none">
+    <div class="promo-bar-inner">
+      <span class="promo-bar-label">🎁 Ваш промокод <span id="promo-bar-percent">5%</span>:</span>
+      <code class="promo-bar-code" id="promo-bar-code">—</code>
+      <button type="button" class="promo-bar-copy" id="promo-bar-copy" aria-label="Копіювати">Копіювати</button>
+      <button type="button" class="promo-bar-close" id="promo-bar-close" aria-label="Сховати">×</button>
+    </div>
+  </div>
+
   <div class="page-wrapper">
     <div class="container">
 
@@ -217,25 +227,31 @@
         <p class="subtitle">Ви неймовірно круті 💛 Тримайте ваш подарунок — промокод на знижку на наступне замовлення:</p>
 
         <div class="promo-card" id="review-promo-card" style="display:none">
-          <p class="promo-card-label">Ваш промокод 🎁</p>
+          <p class="promo-card-label">Ваш промокод <span id="review-promo-percent">5%</span> 🎁</p>
           <div class="promo-card-row">
             <code class="promo-card-code" id="review-promo-code">—</code>
             <button type="button" class="promo-card-copy" id="review-promo-copy">Копіювати</button>
           </div>
-          <p class="promo-card-hint">Одноразовий. Застосовуй при оформленні наступного замовлення на <a href="https://bricktopia.store/" target="_blank">bricktopia.store</a>.</p>
+          <p class="promo-card-hint">
+            Діє <strong>1 місяць</strong>, одноразовий. Застосовуй на <a href="https://bricktopia.store/" target="_blank">bricktopia.store</a>.
+          </p>
         </div>
 
-        <div class="option-card option-survey">
+        <div class="option-card option-survey" id="offer-survey-card">
           <div class="option-header">
-            <span class="option-number">+</span>
+            <span class="option-number">+5%</span>
             <h3>Ще маєте 2 хвилини?</h3>
           </div>
           <div class="option-body">
-            <p class="option-desc">Пройдіть коротке опитування — допоможете нам стати ще краще! 🙏</p>
-            <button class="btn btn-secondary" id="btn-show-survey-after-review">
-              📋 Пройти опитування
+            <p class="option-desc">Пройдіть коротке опитування — і ми <strong>збільшимо ваш промокод до 10%</strong> 🚀</p>
+            <button class="btn btn-accent" id="btn-show-survey-after-review">
+              🎁 Покращити промокод
             </button>
           </div>
+        </div>
+
+        <div class="upgraded-badge" id="promo-upgraded-badge" style="display:none">
+          ✅ Ваш промокод вже 10% — дякуємо за опитування!
         </div>
 
         <a href="https://bricktopia.store/" class="btn btn-secondary" target="_blank" style="margin-top:12px">
@@ -245,59 +261,64 @@
 
       <!-- Step 3: Survey — multi-page -->
       <section id="step-survey" class="step">
-        <button class="btn-back" data-go="positive">← Назад</button>
+        <button class="btn-back" data-go="positive" id="survey-back-btn">← Назад</button>
         <div class="survey-icon">📋</div>
         <h2>Опитування</h2>
-        <p class="subtitle">Ваші відповіді допомагають нам ставати кращими. Це займе лише 2 хвилини!</p>
+        <p class="subtitle">За проходження опитування ми <strong>збільшимо ваш промокод до 10%</strong> 🎁</p>
 
         <!-- Progress bar -->
         <div class="survey-progress">
-          <div class="survey-progress-bar" id="survey-progress-bar" style="width: 33%"></div>
+          <div class="survey-progress-bar" id="survey-progress-bar" style="width: 17%"></div>
         </div>
-        <p class="survey-step-label" id="survey-step-label">Крок 1 з 3</p>
+        <p class="survey-step-label" id="survey-step-label">Крок 1 з 6</p>
 
         <form id="survey-form" class="survey-form">
-          <!-- Page 1: Contact & Source -->
+          <!-- Hidden: name/contact are carried over from the review step -->
+          <input type="hidden" id="survey-name">
+          <input type="hidden" id="survey-contact">
+
+          <!-- Page 1: Source -->
           <div class="survey-page active" data-page="1">
             <div class="form-group">
-              <label for="survey-name">Ваше ім'я *</label>
-              <input type="text" id="survey-name" required placeholder="Ім'я">
-            </div>
-
-            <div class="form-group">
-              <label for="survey-contact">Телефон або Email *</label>
-              <input type="text" id="survey-contact" required placeholder="+380... або email">
-            </div>
-
-            <div class="form-group">
               <label>Як ви дізнались про Bricktopia?</label>
-              <div class="radio-group">
+              <div class="radio-group" data-other-input="source-other">
                 <label class="radio-label"><input type="radio" name="source" value="instagram"> Instagram</label>
                 <label class="radio-label"><input type="radio" name="source" value="tiktok"> TikTok</label>
                 <label class="radio-label"><input type="radio" name="source" value="google"> Google пошук</label>
                 <label class="radio-label"><input type="radio" name="source" value="facebook"> Facebook</label>
                 <label class="radio-label"><input type="radio" name="source" value="friend"> Порада друзів</label>
+                <label class="radio-label"><input type="radio" name="source" value="ad"> Реклама блогера</label>
                 <label class="radio-label"><input type="radio" name="source" value="other"> Інше</label>
               </div>
+              <input type="text" id="source-other" class="other-input" placeholder="Розкажіть де саме..." style="display:none">
             </div>
 
+            <button type="button" class="btn btn-primary btn-survey-next" data-next="2">Далі →</button>
+          </div>
+
+          <!-- Page 2: Gift for -->
+          <div class="survey-page" data-page="2">
             <div class="form-group">
               <label>Для кого було замовлення?</label>
-              <div class="radio-group">
+              <div class="radio-group" data-other-input="gift-for-other">
                 <label class="radio-label"><input type="radio" name="gift_for" value="self"> Для себе</label>
                 <label class="radio-label"><input type="radio" name="gift_for" value="child"> Для дитини</label>
                 <label class="radio-label"><input type="radio" name="gift_for" value="gift"> В подарунок</label>
                 <label class="radio-label"><input type="radio" name="gift_for" value="couple"> Для пари</label>
+                <label class="radio-label"><input type="radio" name="gift_for" value="parent"> Для батьків</label>
+                <label class="radio-label"><input type="radio" name="gift_for" value="other"> Інше</label>
               </div>
+              <input type="text" id="gift-for-other" class="other-input" placeholder="Кому саме?" style="display:none">
             </div>
 
-            <button type="button" class="btn btn-primary btn-survey-next" data-next="2">
-              Далі →
-            </button>
+            <div class="survey-nav-buttons">
+              <button type="button" class="btn btn-secondary btn-survey-prev" data-prev="1">← Назад</button>
+              <button type="button" class="btn btn-primary btn-survey-next" data-next="3">Далі →</button>
+            </div>
           </div>
 
-          <!-- Page 2: Quality & Delivery -->
-          <div class="survey-page" data-page="2">
+          <!-- Page 3: Quality -->
+          <div class="survey-page" data-page="3">
             <div class="form-group">
               <label>Як вам якість фігурки?</label>
               <div class="radio-group">
@@ -318,6 +339,14 @@
               </div>
             </div>
 
+            <div class="survey-nav-buttons">
+              <button type="button" class="btn btn-secondary btn-survey-prev" data-prev="2">← Назад</button>
+              <button type="button" class="btn btn-primary btn-survey-next" data-next="4">Далі →</button>
+            </div>
+          </div>
+
+          <!-- Page 4: Packaging & Delivery -->
+          <div class="survey-page" data-page="4">
             <div class="form-group">
               <label>Як вам пакування?</label>
               <div class="radio-group">
@@ -330,25 +359,23 @@
 
             <div class="form-group">
               <label>Наскільки швидко ви отримали замовлення?</label>
-              <div class="radio-group">
+              <div class="radio-group" data-other-input="delivery-other">
                 <label class="radio-label"><input type="radio" name="delivery_speed" value="fast"> Дуже швидко</label>
                 <label class="radio-label"><input type="radio" name="delivery_speed" value="normal"> Нормально</label>
                 <label class="radio-label"><input type="radio" name="delivery_speed" value="slow"> Довго чекав(ла)</label>
+                <label class="radio-label"><input type="radio" name="delivery_speed" value="other"> Інше</label>
               </div>
+              <input type="text" id="delivery-other" class="other-input" placeholder="Опишіть..." style="display:none">
             </div>
 
             <div class="survey-nav-buttons">
-              <button type="button" class="btn btn-secondary btn-survey-prev" data-prev="1">
-                ← Назад
-              </button>
-              <button type="button" class="btn btn-primary btn-survey-next" data-next="3">
-                Далі →
-              </button>
+              <button type="button" class="btn btn-secondary btn-survey-prev" data-prev="3">← Назад</button>
+              <button type="button" class="btn btn-primary btn-survey-next" data-next="5">Далі →</button>
             </div>
           </div>
 
-          <!-- Page 3: Overall & Wishlist -->
-          <div class="survey-page" data-page="3">
+          <!-- Page 5: Reorder & Recommend -->
+          <div class="survey-page" data-page="5">
             <div class="form-group">
               <label>Чи замовляли б ви у нас знову?</label>
               <div class="radio-group">
@@ -367,6 +394,14 @@
               </div>
             </div>
 
+            <div class="survey-nav-buttons">
+              <button type="button" class="btn btn-secondary btn-survey-prev" data-prev="4">← Назад</button>
+              <button type="button" class="btn btn-primary btn-survey-next" data-next="6">Далі →</button>
+            </div>
+          </div>
+
+          <!-- Page 6: Wishes -->
+          <div class="survey-page" data-page="6">
             <div class="form-group">
               <label for="survey-improve">Що ми можемо покращити?</label>
               <textarea id="survey-improve" rows="3" placeholder="Ваші побажання та ідеї..."></textarea>
@@ -378,11 +413,9 @@
             </div>
 
             <div class="survey-nav-buttons">
-              <button type="button" class="btn btn-secondary btn-survey-prev" data-prev="2">
-                ← Назад
-              </button>
-              <button type="submit" class="btn btn-primary">
-                Відправити відповіді
+              <button type="button" class="btn btn-secondary btn-survey-prev" data-prev="5">← Назад</button>
+              <button type="submit" class="btn btn-accent">
+                🎁 Покращити промокод до 10%
               </button>
             </div>
           </div>
@@ -401,16 +434,23 @@
 
       <section id="step-success-survey" class="step">
         <div class="success-icon">🎉</div>
-        <h2>Дякуємо за відповіді!</h2>
-        <p class="subtitle">Дякуємо, що підтримуєте нашу маленьку команду — це неймовірно цінно для нас! Ваші відповіді допоможуть нам стати ще краще 🙏</p>
-        <div class="success-actions">
-          <button class="btn btn-accent" id="btn-show-review-after-survey">
-            ⭐ Ще й залишити відгук
-          </button>
-          <a href="https://bricktopia.store/" class="btn btn-secondary" target="_blank">
-            🌐 Перейти до магазину
-          </a>
+        <h2>Промокод покращено!</h2>
+        <p class="subtitle">Дякуємо за відповіді 💛 Ваш промокод тепер <strong>10%</strong> — зберегли й оновили його для вас:</p>
+
+        <div class="promo-card" id="survey-promo-card" style="display:none">
+          <p class="promo-card-label">Ваш промокод 10% 🎁</p>
+          <div class="promo-card-row">
+            <code class="promo-card-code" id="survey-promo-code">—</code>
+            <button type="button" class="promo-card-copy" id="survey-promo-copy">Копіювати</button>
+          </div>
+          <p class="promo-card-hint">
+            Діє <strong>1 місяць</strong>, одноразовий. Застосовуй на <a href="https://bricktopia.store/" target="_blank">bricktopia.store</a>.
+          </p>
         </div>
+
+        <a href="https://bricktopia.store/" class="btn btn-secondary" target="_blank" style="margin-top:12px">
+          🌐 Перейти до магазину
+        </a>
       </section>
 
       <!-- Footer -->
