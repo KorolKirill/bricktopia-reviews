@@ -935,11 +935,13 @@ body.is-embed .step {
      + preview) is around 500px; shorter steps get white-space padding
      from this min-height and align visually. */
   min-height: 520px;
-  display: flex;
-  flex-direction: column;
 }
 
+/* Only the active step becomes a flex column — inactive steps inherit
+   display:none from the base .step rule and stay hidden. */
 body.is-embed .step.active {
+  display: flex;
+  flex-direction: column;
   animation: fadeSlide 0.3s ease;
 }
 
