@@ -930,11 +930,32 @@ body.is-embed .container {
 
 body.is-embed .step {
   padding: 24px 20px;
+  /* Keep all steps ~same height so the widget doesn't jump as the
+     user clicks through. Tallest step (media upload with dropzone
+     + preview) is around 500px; shorter steps get white-space padding
+     from this min-height and align visually. */
+  min-height: 520px;
+  display: flex;
+  flex-direction: column;
+}
+
+body.is-embed .step.active {
+  animation: fadeSlide 0.3s ease;
+}
+
+/* Stars + subtitles vertically centred on short steps */
+body.is-embed #step-rating,
+body.is-embed #step-positive,
+body.is-embed #step-success-review,
+body.is-embed #step-success-survey,
+body.is-embed #step-success-negative {
+  justify-content: center;
 }
 
 @media (min-width: 601px) {
   body.is-embed .step {
     padding: 28px 32px;
+    min-height: 560px;
   }
 }
 

@@ -110,7 +110,23 @@ Iframe надсилає events в `window.parent`:
 | type | payload | коли |
 |---|---|---|
 | `ready` | `{}` | iframe завантажився |
+| `resize` | `{ height }` | контент змінив висоту (кожен крок) — use to auto-fit iframe |
 | `review-submitted` | `{ rating, promoCode, hasMedia }` | відгук збережено |
 | `survey-submitted` | `{ promoCode, promoPercent }` | опитування пройшов → промо підвищено до 10% |
 
 Усі містять `source: "bricktopia-reviews"` — фільтруй по ньому.
+
+### Авто-ресайз iframe
+
+Щоб iframe підлаштовувався під висоту контенту і не мав прокрутки зсередини:
+
+```js
+window.addEventListener('message', (e) => {
+  if (e.data?.source !== 'bricktopia-reviews') return;
+  if (e.data.type === 'resize' && typeof e.data.height === 'number') {
+    iframe.style.height = (e.data.height + 20) + 'px'; // +20 for padding
+  }
+});
+```
+
+Якщо цим не користуватися — в iframe все одно фіксована `min-height: 520px` на кожному кроці, тож контент не стрибатиме всередині iframe з висотою `~640-720px`.

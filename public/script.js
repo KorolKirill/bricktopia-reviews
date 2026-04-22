@@ -106,7 +106,20 @@
     if (target) {
       target.classList.add('active');
       window.scrollTo({ top: 0, behavior: 'smooth' });
+      // Tell the host the content height changed so it can resize the
+      // iframe if it wants to (no-op otherwise). Wait a tick so fadeSlide
+      // animation doesn't report mid-animation size.
+      setTimeout(notifyHostHeight, 50);
     }
+  }
+
+  function notifyHostHeight() {
+    if (window.self === window.top) return;
+    const h = Math.max(
+      document.body.scrollHeight,
+      document.documentElement.scrollHeight,
+    );
+    postToHost('resize', { height: h });
   }
 
   function getUrlParams() {
@@ -145,6 +158,7 @@
     const pct = Math.round((page / TOTAL_SURVEY_PAGES) * 100);
     surveyProgressBar.style.width = pct + '%';
     surveyStepLabel.textContent = `Крок ${page} з ${TOTAL_SURVEY_PAGES}`;
+    setTimeout(notifyHostHeight, 50);
   }
 
   // --- Pre-fill from URL params ---
@@ -263,6 +277,7 @@
     const pct = Math.round((page / TOTAL_REVIEW_PAGES) * 100);
     if (reviewProgressBar) reviewProgressBar.style.width = pct + '%';
     if (reviewStepLabel) reviewStepLabel.textContent = `Крок ${page} з ${TOTAL_REVIEW_PAGES}`;
+    setTimeout(notifyHostHeight, 50);
   }
 
   function openReviewForm() {
@@ -1057,6 +1072,9 @@
       document.body.classList.add('is-embed');
       applyEmbedCopy();
       postToHost('ready', {});
+      // Initial size notification + on every window resize
+      setTimeout(notifyHostHeight, 100);
+      window.addEventListener('resize', notifyHostHeight);
     }
 
     storedPromo = loadStoredPromo();
