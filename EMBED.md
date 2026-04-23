@@ -96,8 +96,13 @@ https://bricktopia-reviews.vercel.app/embed?order=%23BBCDBR1234&name=Ольга&
   // Повідомлення від iframe — закриваємо поп-ап через 3 сек після успіху
   window.addEventListener('message', (e) => {
     if (e.data?.source !== 'bricktopia-reviews') return;
-    if (e.data.type === 'review-submitted' || e.data.type === 'survey-submitted') {
-      setTimeout(closeModal, 3000);
+    // Only close when the user explicitly indicates they're done
+    // (clicks "Перейти до магазину"). "review-submitted" and
+    // "survey-submitted" are NOT close signals — the user might still
+    // want to subscribe to the newsletter, take the survey for a bigger
+    // promo, etc.
+    if (e.data.type === 'user-done') {
+      closeModal();
     }
   });
 </script>
@@ -111,8 +116,9 @@ Iframe надсилає events в `window.parent`:
 |---|---|---|
 | `ready` | `{}` | iframe завантажився |
 | `resize` | `{ height }` | контент змінив висоту (кожен крок) — use to auto-fit iframe |
-| `review-submitted` | `{ rating, promoCode, hasMedia }` | відгук збережено |
-| `survey-submitted` | `{ promoCode, promoPercent }` | опитування пройшов → промо підвищено до 10% |
+| `review-submitted` | `{ rating, promoCode, hasMedia }` | відгук збережено (НЕ закривай поп-ап — клієнт може ще підписатися або пройти опитування) |
+| `survey-submitted` | `{ promoCode, promoPercent }` | опитування пройшов → промо підвищено до 10% (НЕ закривай — клієнт читає промокод) |
+| `user-done` | `{ reason: 'go-to-store' }` | клієнт явно натиснув "Перейти до магазину" — можна закривати |
 
 Усі містять `source: "bricktopia-reviews"` — фільтруй по ньому.
 

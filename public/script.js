@@ -44,9 +44,21 @@
     const v = (value || '').trim();
     if (!v) return "Вкажіть ваше ім'я";
     if (v.length < 2) return "Ім'я занадто коротке";
+    if (v.length > 100) return "Ім'я занадто довге";
     if (/(.)\1{6,}/.test(v)) return "Ім'я виглядає як випадковий набір символів";
-    if (/https?:\/\/|www\./i.test(v)) return "Посилання в імені не дозволені";
+    const bad = containsSqlOrUrl(v);
+    if (bad) return bad;
     return null;
+  }
+
+  // Generic free-text check for survey textareas and "Інше" inputs.
+  // Empty is valid (these are optional); non-empty gets the injection
+  // check + length cap.
+  function validateFreeText(value, maxLen) {
+    const v = String(value || '');
+    if (!v.trim()) return null;
+    if (maxLen && v.length > maxLen) return `Занадто довгий текст (максимум ${maxLen} символів)`;
+    return containsSqlOrUrl(v);
   }
 
   function validateReviewBody(value) {
@@ -55,7 +67,33 @@
     if (v.length < 5) return "Відгук занадто короткий (мінімум 5 символів)";
     if (/(.)\1{6,}/.test(v)) return "Відгук виглядає як випадковий набір символів";
     if (/^\d+$/.test(v)) return "Відгук має містити текст, а не лише цифри";
-    if (/https?:\/\/|www\.[a-z]/i.test(v)) return "Посилання в тексті не дозволені";
+    const bad = containsSqlOrUrl(v);
+    if (bad) return bad;
+    return null;
+  }
+
+  // Reject URLs and anything that looks like a SQL/HTML injection attempt.
+  // Used on every free-text field (review body, name, survey textareas,
+  // "other" inputs, complaint problem). Returns a message or null.
+  function containsSqlOrUrl(text) {
+    const v = String(text || '');
+    if (!v) return null;
+    // Any http(s) link or bare www.something
+    if (/https?:\/\//i.test(v)) return "Посилання не дозволені";
+    if (/\bwww\.[a-z0-9-]+\.[a-z]{2,}/i.test(v)) return "Посилання не дозволені";
+    // <script>, javascript: — XSS
+    if (/<\s*script\b/i.test(v)) return "Некоректний вміст";
+    if (/javascript:/i.test(v)) return "Некоректний вміст";
+    // HTML tag opening
+    if (/<\s*\/?\s*(a|iframe|img|svg|style|link|meta|object|embed)\b/i.test(v)) return "HTML-теги не дозволені";
+    // SQL statement patterns: keyword followed by target (DROP TABLE, UNION SELECT, OR 1=1 ...)
+    if (/\b(drop|delete|truncate|insert|update|alter|create|exec|execute)\s+(table|into|from|database|schema|user|index|view)\b/i.test(v)) return "Некоректний вміст";
+    if (/\bunion\s+(all\s+)?select\b/i.test(v)) return "Некоректний вміст";
+    if (/\bor\s+['"]?\d+['"]?\s*=\s*['"]?\d+['"]?/i.test(v)) return "Некоректний вміст";
+    // SQL comment at line end
+    if (/--\s*(\n|$)/.test(v)) return "Некоректний вміст";
+    // Block comment
+    if (/\/\*[\s\S]*?\*\//.test(v)) return "Некоректний вміст";
     return null;
   }
 
@@ -798,6 +836,12 @@
         alert("Будь ласка, заповніть ім'я, контакт та опис проблеми");
         return;
       }
+      const nameErrN = validateName(name);
+      if (nameErrN) { alert(nameErrN); return; }
+      const contactErrN = validateContact(contact);
+      if (contactErrN) { alert(contactErrN); return; }
+      const problemErr = validateFreeText(problem, 5000);
+      if (problemErr) { alert(problemErr); return; }
 
       setLoading(btnSendNeg, true);
       try {
@@ -970,6 +1014,27 @@
       const constructorChange = (document.getElementById('survey-constructor-change').value || '').trim();
       const partsMissing = (document.getElementById('survey-parts-missing').value || '').trim();
       const accessories = (document.getElementById('survey-accessories').value || '').trim();
+
+      // Reject URLs / SQL patterns in any of the free-text survey inputs
+      // so the admin's improve/wishlist columns stay clean.
+      const freeTextChecks = [
+        ['Що змінити в конструкторі', constructorChange],
+        ['Бракує деталей', partsMissing],
+        ['Аксесуари', accessories],
+        ['Що покращити', document.getElementById('survey-improve').value],
+        ['Бажані товари', document.getElementById('survey-wishlist').value],
+        ['Інше (звідки)', (document.getElementById('source-other') || {}).value],
+        ['Інше (подарунок)', (document.getElementById('gift-for-other') || {}).value],
+        ['Інше (пакування)', (document.getElementById('packaging-other') || {}).value],
+        ['Інше (доставка)', (document.getElementById('delivery-other') || {}).value],
+      ];
+      for (const [label, val] of freeTextChecks) {
+        const err = validateFreeText(val, 5000);
+        if (err) {
+          alert(`Поле "${label}": ${err}`);
+          return;
+        }
+      }
       const generalImprove = (document.getElementById('survey-improve').value || '').trim();
       const generalWishlist = (document.getElementById('survey-wishlist').value || '').trim();
 
@@ -1042,6 +1107,21 @@
     }
   }
 
+  // Wire up "Перейти до магазину" links — clicking one is a clear
+  // "I'm done" signal, so we post a distinct event the host can listen
+  // to for closing the popup. Importantly, review-submitted and
+  // survey-submitted are NOT close signals anymore — the user might
+  // still want to subscribe, take the survey, or upgrade the promo.
+  function initUserDoneLinks() {
+    document.querySelectorAll('a[href="https://bricktopia.store/"]').forEach((a) => {
+      // Skip the logo in the header — that's navigation, not "done".
+      if (a.classList.contains('logo-text')) return;
+      a.addEventListener('click', () => {
+        postToHost('user-done', { reason: 'go-to-store' });
+      });
+    });
+  }
+
   // When the form is embedded as a widget on the site (not reached via
   // the post-order email), we can't assume the visitor actually ordered
   // anything. Swap out copy that says "дякуємо за замовлення" / references
@@ -1090,6 +1170,7 @@
     initOtherInputs();
     initOptin();
     initEvents();
+    initUserDoneLinks();
   }
 
   if (document.readyState === 'loading') {
