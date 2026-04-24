@@ -10,7 +10,11 @@
   // New public review API (product reviews — replaces Judge.me).
   // Points to the lost-orders Next.js deployment (dashboard).
   const REVIEW_API = window.PRODUCT_REVIEW_API || 'https://lost-orders.vercel.app';
-  const DEFAULT_STORE_ID = 1;
+  // Bricktopia is store_id=2 in the shared platizhka DB (store 1 is a
+  // stale test row). All the real abandoned-cart + product promo codes
+  // live under 2, and the checkout at platizhka.vercel.app/bricktopia.store
+  // looks up that store too.
+  const DEFAULT_STORE_ID = 2;
 
   const STAR_LABELS = {
     1: 'Дуже погано 😞',
