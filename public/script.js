@@ -31,6 +31,37 @@
 
   const STORAGE_KEY = 'bricktopia_promo_v1';
 
+  // Best-effort error telemetry. Sends a single POST to lost-orders so the
+  // browser-side failure shows up in Vercel Function Logs (grep "[client-error]").
+  // Never throws, never blocks the UI flow — failure to log is silent.
+  function reportClientError(context, err, extra) {
+    try {
+      const payload = {
+        context: String(context || 'unknown'),
+        message: err && err.message ? String(err.message) : String(err || ''),
+        status: err && typeof err.status === 'number' ? err.status : null,
+        serverError: err && err.serverError ? String(err.serverError) : null,
+        extra: extra || null,
+      };
+      // Use sendBeacon when possible — survives page unload, doesn't block.
+      const url = `${REVIEW_API}/api/public/log-error`;
+      const json = JSON.stringify(payload);
+      if (navigator.sendBeacon) {
+        const blob = new Blob([json], { type: 'application/json' });
+        navigator.sendBeacon(url, blob);
+      } else {
+        fetch(url, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: json,
+          keepalive: true,
+        }).catch(() => {});
+      }
+    } catch {
+      // Logging failure must never break the form.
+    }
+  }
+
   // --- Validation helpers (mirror server-side validation in submit route) ---
   const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
   const PHONE_RE = /^\+?[\d\s\-()]{9,20}$/;
@@ -583,6 +614,10 @@
       const body = await res.json().catch(() => ({}));
       if (!res.ok) {
         console.error('[upgrade-promo]', res.status, body);
+        const e = new Error(body.error || `HTTP ${res.status}`);
+        e.status = res.status;
+        e.serverError = body.error || null;
+        reportClientError('upgrade-promo', e, { code: storedPromo && storedPromo.code });
         return;
       }
       if (body.discountValue) {
@@ -633,7 +668,18 @@
         const body = await res.json().catch(() => ({}));
         if (!res.ok) {
           console.error('[subscribe]', res.status, body);
-          alert('Не вдалось підписати: ' + ((body.error || '') + (body.hint ? ' — ' + body.hint : '')));
+          const fakeErr = new Error(body.error || `HTTP ${res.status}`);
+          fakeErr.status = res.status;
+          fakeErr.serverError = body.error || null;
+          reportClientError('subscribe', fakeErr, { hint: body.hint || null });
+          // RLS / DB errors are too cryptic for end-users — collapse to
+          // a friendly message but keep the original detail in the log.
+          const isRls = /row-level security|violates.*policy/i.test(body.error || '');
+          if (isRls || res.status === 500) {
+            alert("Зараз не можемо підписати — спробуйте пізніше. Промокод вже у вас, нічого не загубилось.");
+          } else {
+            alert('Не вдалось підписати: ' + ((body.error || '') + (body.hint ? ' — ' + body.hint : '')));
+          }
           return;
         }
         consent.disabled = true;
@@ -641,6 +687,7 @@
         if (doneMsg) doneMsg.style.display = 'block';
       } catch (err) {
         console.error(err);
+        reportClientError('subscribe-network', err);
         alert('Помилка мережі. Спробуйте ще раз.');
       } finally {
         subscribeBtn.disabled = false;
@@ -767,18 +814,42 @@
       urlParams: getUrlParams(),
     };
 
-    const response = await fetch(`${API_BASE}/reviews/submit`, {
+    const url = `${API_BASE}/reviews/submit`;
+    const opts = {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(payload),
-    });
+    };
 
-    if (!response.ok) {
-      const err = await response.json().catch(() => ({}));
-      throw new Error(err.error || 'Server error');
+    // Retry on network errors and 5xx so a transient cold-start /
+    // mobile-network blip doesn't lose the survey submission.
+    let lastErr;
+    for (let attempt = 0; attempt < 3; attempt++) {
+      try {
+        const response = await fetch(url, opts);
+        if (response.ok) return response.json();
+
+        // 4xx — surface server message and stop retrying.
+        if (response.status < 500) {
+          const errBody = await response.json().catch(() => ({}));
+          const e = new Error(errBody.error || `HTTP ${response.status}`);
+          e.status = response.status;
+          e.serverError = errBody.error || null;
+          throw e;
+        }
+
+        // 5xx — record and retry.
+        const errBody = await response.json().catch(() => ({}));
+        lastErr = new Error(errBody.error || `HTTP ${response.status}`);
+        lastErr.status = response.status;
+        lastErr.serverError = errBody.error || null;
+      } catch (e) {
+        if (e && typeof e.status === 'number' && e.status < 500) throw e;
+        lastErr = e;
+      }
+      if (attempt < 2) await new Promise(r => setTimeout(r, 400 * (attempt + 1)));
     }
-
-    return response.json();
+    throw lastErr || new Error('Server error');
   }
 
   // --- Back buttons ---
@@ -860,7 +931,12 @@
         showStep('successNeg');
       } catch (e) {
         console.error('Submit error:', e);
-        alert('Помилка відправки. Спробуйте ще раз.');
+        reportClientError('complaint-submit', e, {
+          rating: selectedRating,
+          api: `${API_BASE}/reviews/submit`,
+        });
+        const detail = (e && e.message) ? e.message : 'невідома помилка';
+        alert('Помилка відправки: ' + detail);
       } finally {
         setLoading(btnSendNeg, false);
       }
@@ -1086,7 +1162,13 @@
         showStep('successSurvey');
       } catch (e) {
         console.error('Submit error:', e);
-        alert('Помилка відправки. Спробуйте ще раз.');
+        reportClientError('survey-submit', e, {
+          rating: selectedRating,
+          hasContact: !!contact,
+          api: `${API_BASE}/reviews/submit`,
+        });
+        const detail = (e && e.message) ? e.message : 'невідома помилка';
+        alert('Помилка відправки: ' + detail + '\n\nЯкщо помилка повторюється — напишіть нам у Telegram, ми вручну зробимо знижку 10%.');
       } finally {
         setLoading(submitBtn, false);
       }
