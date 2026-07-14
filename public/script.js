@@ -79,15 +79,15 @@
     if (!v) return null;
     if (EMAIL_RE.test(v)) return null;
     if (PHONE_RE.test(v)) return null;
-    return "Введіть коректний Email або телефон (або залиште поле порожнім)";
+    return t('err_contact_invalid');
   }
 
   function validateName(value) {
     const v = (value || '').trim();
-    if (!v) return "Вкажіть ваше ім'я";
-    if (v.length < 2) return "Ім'я занадто коротке";
-    if (v.length > 100) return "Ім'я занадто довге";
-    if (/(.)\1{6,}/.test(v)) return "Ім'я виглядає як випадковий набір символів";
+    if (!v) return t('err_name_required');
+    if (v.length < 2) return t('err_name_short');
+    if (v.length > 100) return t('err_name_long');
+    if (/(.)\1{6,}/.test(v)) return t('err_name_garbage');
     const bad = containsSqlOrUrl(v);
     if (bad) return bad;
     return null;
@@ -99,16 +99,16 @@
   function validateFreeText(value, maxLen) {
     const v = String(value || '');
     if (!v.trim()) return null;
-    if (maxLen && v.length > maxLen) return `Занадто довгий текст (максимум ${maxLen} символів)`;
+    if (maxLen && v.length > maxLen) return t('err_text_long', { n: maxLen });
     return containsSqlOrUrl(v);
   }
 
   function validateReviewBody(value) {
     const v = (value || '').trim();
-    if (!v) return "Напишіть текст відгуку";
-    if (v.length < 5) return "Відгук занадто короткий (мінімум 5 символів)";
-    if (/(.)\1{6,}/.test(v)) return "Відгук виглядає як випадковий набір символів";
-    if (/^\d+$/.test(v)) return "Відгук має містити текст, а не лише цифри";
+    if (!v) return t('err_body_required');
+    if (v.length < 5) return t('err_body_short');
+    if (/(.)\1{6,}/.test(v)) return t('err_body_garbage');
+    if (/^\d+$/.test(v)) return t('err_body_digits');
     const bad = containsSqlOrUrl(v);
     if (bad) return bad;
     return null;
@@ -121,21 +121,21 @@
     const v = String(text || '');
     if (!v) return null;
     // Any http(s) link or bare www.something
-    if (/https?:\/\//i.test(v)) return "Посилання не дозволені";
-    if (/\bwww\.[a-z0-9-]+\.[a-z]{2,}/i.test(v)) return "Посилання не дозволені";
+    if (/https?:\/\//i.test(v)) return t('err_no_links');
+    if (/\bwww\.[a-z0-9-]+\.[a-z]{2,}/i.test(v)) return t('err_no_links');
     // <script>, javascript: — XSS
-    if (/<\s*script\b/i.test(v)) return "Некоректний вміст";
-    if (/javascript:/i.test(v)) return "Некоректний вміст";
+    if (/<\s*script\b/i.test(v)) return t('err_bad_content');
+    if (/javascript:/i.test(v)) return t('err_bad_content');
     // HTML tag opening
-    if (/<\s*\/?\s*(a|iframe|img|svg|style|link|meta|object|embed)\b/i.test(v)) return "HTML-теги не дозволені";
+    if (/<\s*\/?\s*(a|iframe|img|svg|style|link|meta|object|embed)\b/i.test(v)) return t('err_no_html');
     // SQL statement patterns: keyword followed by target (DROP TABLE, UNION SELECT, OR 1=1 ...)
-    if (/\b(drop|delete|truncate|insert|update|alter|create|exec|execute)\s+(table|into|from|database|schema|user|index|view)\b/i.test(v)) return "Некоректний вміст";
-    if (/\bunion\s+(all\s+)?select\b/i.test(v)) return "Некоректний вміст";
-    if (/\bor\s+['"]?\d+['"]?\s*=\s*['"]?\d+['"]?/i.test(v)) return "Некоректний вміст";
+    if (/\b(drop|delete|truncate|insert|update|alter|create|exec|execute)\s+(table|into|from|database|schema|user|index|view)\b/i.test(v)) return t('err_bad_content');
+    if (/\bunion\s+(all\s+)?select\b/i.test(v)) return t('err_bad_content');
+    if (/\bor\s+['"]?\d+['"]?\s*=\s*['"]?\d+['"]?/i.test(v)) return t('err_bad_content');
     // SQL comment at line end
-    if (/--\s*(\n|$)/.test(v)) return "Некоректний вміст";
+    if (/--\s*(\n|$)/.test(v)) return t('err_bad_content');
     // Block comment
-    if (/\/\*[\s\S]*?\*\//.test(v)) return "Некоректний вміст";
+    if (/\/\*[\s\S]*?\*\//.test(v)) return t('err_bad_content');
     return null;
   }
 
@@ -460,11 +460,11 @@
 
       for (const file of files) {
         if (uploadedMedia.length >= MAX_FILES) {
-          alert(`Максимум ${MAX_FILES} файлів`);
+          alert(t('err_max_files', { n: MAX_FILES }));
           break;
         }
         if (file.size > MAX_FILE_SIZE) {
-          alert(`Файл "${file.name}" завеликий (${humanSize(file.size)}). Макс. ${humanSize(MAX_FILE_SIZE)}.`);
+          alert(t('err_file_big', { name: file.name, size: humanSize(file.size), max: humanSize(MAX_FILE_SIZE) }));
           continue;
         }
 
@@ -687,7 +687,7 @@
           // a friendly message but keep the original detail in the log.
           const isRls = /row-level security|violates.*policy/i.test(body.error || '');
           if (isRls || res.status === 500) {
-            alert("Зараз не можемо підписати — спробуйте пізніше. Промокод вже у вас, нічого не загубилось.");
+            alert(t('err_subscribe_later'));
           } else {
             alert(t('err_subscribe') + ((body.error || '') + (body.hint ? ' — ' + body.hint : '')));
           }
@@ -922,7 +922,7 @@
       const problem = document.getElementById('neg-problem').value.trim();
 
       if (!name || !contact || !problem) {
-        alert("Будь ласка, заповніть ім'я, контакт та опис проблеми");
+        alert(t('err_fill_negative'));
         return;
       }
       const nameErrN = validateName(name);
@@ -1125,7 +1125,7 @@
       for (const [label, val] of freeTextChecks) {
         const err = validateFreeText(val, 5000);
         if (err) {
-          alert(`Поле "${label}": ${err}`);
+          alert(t('err_field_label', { label: label, err: err }));
           return;
         }
       }

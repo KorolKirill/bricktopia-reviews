@@ -275,6 +275,33 @@
     uploading: { uk: 'Завантаження...', pl: 'Wgrywanie...', en: 'Uploading...' },
     err_upload_file: { uk: 'Не вдалось завантажити файл: ', pl: 'Nie udało się wgrać pliku: ', en: 'Failed to upload the file: ' },
     err_subscribe: { uk: 'Не вдалось підписати: ', pl: 'Nie udało się zapisać: ', en: 'Failed to subscribe: ' },
+    err_subscribe_later: {
+      uk: 'Зараз не можемо підписати — спробуйте пізніше. Промокод вже у вас, нічого не загубилось.',
+      pl: 'Teraz nie możemy Cię zapisać — spróbuj później. Kod rabatowy już masz, nic nie przepadło.',
+      en: 'We can\'t subscribe you right now — try again later. You already have your promo code, nothing is lost.'
+    },
+    // --- form validation ---
+    err_contact_invalid: {
+      uk: 'Введіть коректний Email або телефон (або залиште поле порожнім)',
+      pl: 'Podaj poprawny Email lub telefon (albo zostaw pole puste)',
+      en: 'Enter a valid email or phone (or leave the field empty)'
+    },
+    err_name_required: { uk: 'Вкажіть ваше ім\'я', pl: 'Podaj swoje imię', en: 'Enter your name' },
+    err_name_short: { uk: 'Ім\'я занадто коротке', pl: 'Imię jest za krótkie', en: 'Name is too short' },
+    err_name_long: { uk: 'Ім\'я занадто довге', pl: 'Imię jest za długie', en: 'Name is too long' },
+    err_name_garbage: { uk: 'Ім\'я виглядає як випадковий набір символів', pl: 'Imię wygląda na przypadkowy ciąg znaków', en: 'The name looks like random characters' },
+    err_text_long: { uk: 'Занадто довгий текст (максимум {n} символів)', pl: 'Tekst jest za długi (maksymalnie {n} znaków)', en: 'Text is too long (max {n} characters)' },
+    err_body_required: { uk: 'Напишіть текст відгуку', pl: 'Napisz treść opinii', en: 'Please write your review' },
+    err_body_short: { uk: 'Відгук занадто короткий (мінімум 5 символів)', pl: 'Opinia jest za krótka (minimum 5 znaków)', en: 'The review is too short (min 5 characters)' },
+    err_body_garbage: { uk: 'Відгук виглядає як випадковий набір символів', pl: 'Opinia wygląda na przypadkowy ciąg znaków', en: 'The review looks like random characters' },
+    err_body_digits: { uk: 'Відгук має містити текст, а не лише цифри', pl: 'Opinia musi zawierać tekst, a nie tylko cyfry', en: 'The review must contain text, not just numbers' },
+    err_no_links: { uk: 'Посилання не дозволені', pl: 'Linki są niedozwolone', en: 'Links are not allowed' },
+    err_bad_content: { uk: 'Некоректний вміст', pl: 'Nieprawidłowa treść', en: 'Invalid content' },
+    err_no_html: { uk: 'HTML-теги не дозволені', pl: 'Tagi HTML są niedozwolone', en: 'HTML tags are not allowed' },
+    err_max_files: { uk: 'Максимум {n} файлів', pl: 'Maksymalnie {n} plików', en: 'Maximum {n} files' },
+    err_file_big: { uk: 'Файл "{name}" завеликий ({size}). Макс. {max}.', pl: 'Plik "{name}" jest za duży ({size}). Maks. {max}.', en: 'File "{name}" is too large ({size}). Max {max}.' },
+    err_fill_negative: { uk: 'Будь ласка, заповніть ім\'я, контакт та опис проблеми', pl: 'Uzupełnij proszę imię, kontakt i opis problemu', en: 'Please fill in your name, contact and a description of the problem' },
+    err_field_label: { uk: 'Поле "{label}": {err}', pl: 'Pole "{label}": {err}', en: 'Field "{label}": {err}' },
     telegram_fallback: {
       uk: '\n\nЯкщо помилка повторюється — напишіть нам у Telegram, ми вручну зробимо знижку 10%.',
       pl: '\n\nJeśli błąd się powtarza — napisz do nas na Telegramie, ręcznie zrobimy zniżkę 10%.',
