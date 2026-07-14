@@ -16,12 +16,19 @@
   // looks up that store too.
   const DEFAULT_STORE_ID = 2;
 
+  // i18n bridge (i18n.js is loaded before this file).
+  const I18N = window.REVIEW_I18N || {
+    locale: 'uk', store: 'ua', brand: { name: 'Bricktopia', url: 'https://bricktopia.store/' },
+    t: (k) => k, applyI18n: () => {},
+  };
+  const t = (k, v) => I18N.t(k, v);
+
   const STAR_LABELS = {
-    1: 'Дуже погано 😞',
-    2: 'Погано 😕',
-    3: 'Нормально 😐',
-    4: 'Добре 😊',
-    5: 'Чудово! 🤩',
+    1: t('star1'),
+    2: t('star2'),
+    3: t('star3'),
+    4: t('star4'),
+    5: t('star5'),
   };
 
   const TOTAL_SURVEY_PAGES = 7;
@@ -208,8 +215,12 @@
   }
 
   function getStoreId() {
+    // If the caller passed a numeric store id, honour it; otherwise derive
+    // from the resolved store (pl -> Kloniko 3, ua -> Bricktopia 2).
     const params = getUrlParams();
-    return params.storeId ? Number(params.storeId) : DEFAULT_STORE_ID;
+    const n = Number(params.storeId);
+    if (Number.isInteger(n) && n > 0) return n;
+    return I18N.store === 'pl' ? 3 : DEFAULT_STORE_ID;
   }
 
   function setLoading(btn, loading) {
@@ -230,7 +241,7 @@
     });
     const pct = Math.round((page / TOTAL_SURVEY_PAGES) * 100);
     surveyProgressBar.style.width = pct + '%';
-    surveyStepLabel.textContent = `Крок ${page} з ${TOTAL_SURVEY_PAGES}`;
+    surveyStepLabel.textContent = t('step_x_of_6', { n: page });
     setTimeout(notifyHostHeight, 50);
   }
 
@@ -295,7 +306,7 @@
     } else if (selectedRating > 0) {
       starLabel.textContent = STAR_LABELS[selectedRating];
     } else {
-      starLabel.textContent = 'Оберіть оцінку';
+      starLabel.textContent = t('choose_rating');
     }
   }
 
@@ -325,7 +336,7 @@
       btn.classList.toggle('active', r <= upTo);
     });
     if (reviewRatingLabel) {
-      reviewRatingLabel.textContent = upTo > 0 ? (STAR_LABELS[upTo] || '') : 'Оберіть оцінку';
+      reviewRatingLabel.textContent = upTo > 0 ? (STAR_LABELS[upTo] || '') : t('choose_rating');
     }
   }
 
@@ -349,7 +360,7 @@
     });
     const pct = Math.round((page / TOTAL_REVIEW_PAGES) * 100);
     if (reviewProgressBar) reviewProgressBar.style.width = pct + '%';
-    if (reviewStepLabel) reviewStepLabel.textContent = `Крок ${page} з ${TOTAL_REVIEW_PAGES}`;
+    if (reviewStepLabel) reviewStepLabel.textContent = t('step_x_of_4', { n: page });
     setTimeout(notifyHostHeight, 50);
   }
 
@@ -363,9 +374,9 @@
 
   // --- File uploads ---
   function humanSize(bytes) {
-    if (bytes < 1024) return bytes + ' Б';
-    if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(0) + ' КБ';
-    return (bytes / 1024 / 1024).toFixed(1) + ' МБ';
+    if (bytes < 1024) return bytes + ' B';
+    if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(0) + ' KB';
+    return (bytes / 1024 / 1024).toFixed(1) + ' MB';
   }
 
   // Enable/disable the "Далі →" button on the media step based on
@@ -377,7 +388,7 @@
     if (nextBtn) {
       nextBtn.disabled = uploading;
       nextBtn.classList.toggle('is-uploading', uploading);
-      nextBtn.textContent = uploading ? 'Завантаження...' : 'Далі →';
+      nextBtn.textContent = uploading ? t('uploading') : t('next');
     }
     const drop = document.querySelector('.file-upload-drop');
     if (drop) drop.classList.toggle('is-busy', uploading);
@@ -413,7 +424,7 @@
       remove.type = 'button';
       remove.className = 'file-preview-remove';
       remove.textContent = '×';
-      remove.setAttribute('aria-label', 'Видалити');
+      remove.setAttribute('aria-label', t('remove'));
       remove.addEventListener('click', () => {
         uploadedMedia.splice(i, 1);
         renderFilePreview();
@@ -474,7 +485,7 @@
           }
         } catch (err) {
           console.error('Upload error:', err);
-          alert('Не вдалось завантажити файл: ' + (err && err.message ? err.message : 'невідома помилка'));
+          alert(t('err_upload_file') + (err && err.message ? err.message : t('err_unknown')));
           const idx = uploadedMedia.indexOf(placeholder);
           if (idx !== -1) uploadedMedia.splice(idx, 1);
           renderFilePreview();
@@ -522,7 +533,7 @@
         document.execCommand('copy');
         window.getSelection().removeAllRanges();
       }
-      btn.textContent = 'Скопійовано ✓';
+      btn.textContent = t('copied');
       btn.classList.add('copied');
       setTimeout(() => {
         btn.textContent = original;
@@ -648,7 +659,7 @@
     async function doSubscribe(email) {
       const clean = (email || '').trim();
       if (!EMAIL_RE.test(clean)) {
-        alert('Введіть коректний Email');
+        alert(t('err_valid_email'));
         if (emailInput) emailInput.focus();
         return;
       }
@@ -678,7 +689,7 @@
           if (isRls || res.status === 500) {
             alert("Зараз не можемо підписати — спробуйте пізніше. Промокод вже у вас, нічого не загубилось.");
           } else {
-            alert('Не вдалось підписати: ' + ((body.error || '') + (body.hint ? ' — ' + body.hint : '')));
+            alert(t('err_subscribe') + ((body.error || '') + (body.hint ? ' — ' + body.hint : '')));
           }
           return;
         }
@@ -688,7 +699,7 @@
       } catch (err) {
         console.error(err);
         reportClientError('subscribe-network', err);
-        alert('Помилка мережі. Спробуйте ще раз.');
+        alert(t('err_network'));
       } finally {
         subscribeBtn.disabled = false;
       }
@@ -737,7 +748,7 @@
 
         // Validate current page
         if (currentReviewPage === 1 && !reviewRating) {
-          alert('Оберіть оцінку');
+          alert(t('choose_rating'));
           return;
         }
         if (currentReviewPage === 2) {
@@ -747,7 +758,7 @@
         if (currentReviewPage === 3) {
           // Block nav while any file is still uploading
           if (uploadedMedia.some((m) => m.uploading)) {
-            alert('Зачекайте поки завантажаться файли');
+            alert(t('wait_upload'));
             return;
           }
         }
@@ -766,6 +777,9 @@
   async function submitProductReview(data) {
     const urlP = getUrlParams();
     const payload = {
+      // `store` (ua|pl) is what the backend routes on; storeId kept as a
+      // legacy fallback. PL -> product_reviews store_id 3, source_locale 'pl'.
+      store: I18N.store,
       storeId: getStoreId(),
       productHandle: urlP.productHandle || null,
       productTitle: data.productTitle || urlP.productTitle || null,
@@ -935,8 +949,8 @@
           rating: selectedRating,
           api: `${API_BASE}/reviews/submit`,
         });
-        const detail = (e && e.message) ? e.message : 'невідома помилка';
-        alert('Помилка відправки: ' + detail);
+        const detail = (e && e.message) ? e.message : t('err_unknown');
+        alert(t('err_send') + detail);
       } finally {
         setLoading(btnSendNeg, false);
       }
@@ -977,7 +991,7 @@
         const productTitle = document.getElementById('review-product').value.trim();
 
         if (!reviewRating) {
-          alert('Оберіть оцінку');
+          alert(t('choose_rating'));
           showReviewPage(1);
           return;
         }
@@ -1002,7 +1016,7 @@
 
         // Block submit while any file is still uploading
         if (uploadedMedia.some((m) => m.uploading)) {
-          alert('Зачекайте поки завантажаться файли');
+          alert(t('wait_upload'));
           return;
         }
 
@@ -1032,7 +1046,7 @@
           showStep('successReview');
         } catch (err) {
           console.error('Review submit error:', err);
-          alert('Помилка відправки: ' + (err && err.message ? err.message : 'невідома помилка'));
+          alert(t('err_send') + (err && err.message ? err.message : t('err_unknown')));
         } finally {
           setLoading(submitBtn, false);
         }
@@ -1167,8 +1181,8 @@
           hasContact: !!contact,
           api: `${API_BASE}/reviews/submit`,
         });
-        const detail = (e && e.message) ? e.message : 'невідома помилка';
-        alert('Помилка відправки: ' + detail + '\n\nЯкщо помилка повторюється — напишіть нам у Telegram, ми вручну зробимо знижку 10%.');
+        const detail = (e && e.message) ? e.message : t('err_unknown');
+        alert(t('err_send') + detail + t('telegram_fallback'));
       } finally {
         setLoading(submitBtn, false);
       }
@@ -1214,26 +1228,54 @@
   // ordering for neutral review-leaving wording.
   function applyEmbedCopy() {
     const ratingH1 = document.querySelector('#step-rating h1');
-    if (ratingH1) ratingH1.textContent = 'Залиште відгук про Bricktopia 💛';
+    if (ratingH1) ratingH1.textContent = t('rating_h1_embed');
 
     const ratingSubtitle = document.querySelector('#step-rating .subtitle');
-    if (ratingSubtitle) {
-      ratingSubtitle.textContent =
-        'Ми — невелика українська команда, яка створює фігурки з любов\'ю. Ваша думка дуже багато для нас значить і допомагає нам ставати кращими!';
-    }
+    if (ratingSubtitle) ratingSubtitle.textContent = t('rating_subtitle_embed');
 
     const negativeH2 = document.querySelector('#step-negative h2');
-    if (negativeH2) negativeH2.textContent = 'Нам важливо почути вас';
+    if (negativeH2) negativeH2.textContent = t('neg_h2_embed');
 
     const negativeSubtitle = document.querySelector('#step-negative .subtitle');
-    if (negativeSubtitle) {
-      negativeSubtitle.textContent =
-        'Ваша думка дуже важлива для нас. Розкажіть, що саме вам не сподобалось — ми обов\'язково розберемось.';
-    }
+    if (negativeSubtitle) negativeSubtitle.textContent = t('neg_subtitle_embed');
+  }
+
+  // Localize radio-option labels (the text sits next to an <input>, so it's
+  // not safe to data-i18n the whole label — map by name:value instead).
+  const RADIO_LABELS = {
+    'source:google': 'src_google', 'source:friend': 'src_friend', 'source:ad': 'src_ad', 'source:other': 'opt_other',
+    'gift_for:self': 'gf_self', 'gift_for:child': 'gf_child', 'gift_for:gift': 'gf_gift', 'gift_for:couple': 'gf_couple', 'gift_for:parent': 'gf_parent', 'gift_for:other': 'opt_other',
+    'quality:excellent': 'ql_excellent', 'quality:good': 'ql_good', 'quality:ok': 'ql_ok', 'quality:bad': 'ql_bad',
+    'likeness:perfect': 'lk_perfect', 'likeness:good': 'lk_good', 'likeness:ok': 'lk_ok', 'likeness:bad': 'lk_bad',
+    'packaging:excellent': 'pk_excellent', 'packaging:good': 'pk_good', 'packaging:ok': 'pk_ok', 'packaging:bad': 'pk_bad', 'packaging:other': 'opt_other',
+    'delivery_speed:fast': 'dl_fast', 'delivery_speed:normal': 'dl_normal', 'delivery_speed:slow': 'dl_slow', 'delivery_speed:other': 'opt_other',
+    'constructor_convenience:very_easy': 'cc_very_easy', 'constructor_convenience:ok': 'cc_ok', 'constructor_convenience:hard': 'cc_hard', 'constructor_convenience:didnt_use': 'cc_didnt',
+    'parts_found:yes': 'pf_yes', 'parts_found:mostly': 'pf_mostly', 'parts_found:no': 'pf_no',
+    'website_convenience:excellent': 'wc_excellent', 'website_convenience:good': 'wc_good', 'website_convenience:ok': 'wc_ok', 'website_convenience:bad': 'wc_bad',
+    'reorder:yes': 'ro_yes', 'reorder:maybe': 'ro_maybe', 'reorder:no': 'ro_no',
+    'recommend:yes': 'rc_yes', 'recommend:maybe': 'rc_maybe', 'recommend:no': 'rc_no',
+  };
+  function localizeRadios() {
+    document.querySelectorAll('.radio-label > input[type="radio"]').forEach((input) => {
+      const key = RADIO_LABELS[input.name + ':' + input.value];
+      if (!key) return; // brand names (Instagram/TikTok/Facebook) stay as-is
+      // Replace the trailing text node after the input, keep the input.
+      const label = input.parentElement;
+      let node = input.nextSibling;
+      while (node && node.nodeType !== Node.TEXT_NODE) node = node.nextSibling;
+      const text = ' ' + t(key);
+      if (node) node.textContent = text;
+      else label.appendChild(document.createTextNode(text));
+    });
   }
 
   // --- Init ---
   function init() {
+    // Localize the whole form first (data-i18n + brand bits + radio options),
+    // then embed-mode copy overrides a few headings.
+    I18N.applyI18n();
+    localizeRadios();
+
     if (isEmbedMode()) {
       document.body.classList.add('is-embed');
       applyEmbedCopy();
