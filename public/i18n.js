@@ -94,6 +94,16 @@
     ph_name: { uk: 'Ім\'я', pl: 'Imię', en: 'Name' },
     label_contact_phone: { uk: 'Телефон або Email', pl: 'Telefon lub Email', en: 'Phone or Email' },
     ph_contact_phone: { uk: '+380... або email', pl: '+48... lub email', en: '+48... or email' },
+    // Email-only wording — used by stores without an SMS channel (Kloniko:
+    // TurboSMS is Ukrainian and cannot deliver to +48). Asking for a phone we
+    // can't write to only loses the promo code.
+    label_contact_email: { uk: 'Email', pl: 'Email', en: 'Email' },
+    ph_contact_email_only: { uk: 'email@example.com', pl: 'email@example.com', en: 'email@example.com' },
+    contact_hint_email: {
+      uk: 'Надішлемо промокод на цю пошту 💛',
+      pl: 'Wyślemy kod rabatowy na ten adres 💛',
+      en: "We'll send the promo code to this address 💛",
+    },
     label_order_opt: { uk: 'Номер замовлення (якщо пам\'ятаєте)', pl: 'Numer zamówienia (jeśli pamiętasz)', en: 'Order number (if you remember)' },
     label_problem: { uk: 'Що саме не так?', pl: 'Co dokładnie jest nie tak?', en: 'What exactly is wrong?' },
     ph_problem: {
@@ -344,9 +354,14 @@
     document.documentElement.setAttribute('lang', locale);
   }
 
+  // Which contact channels this store can actually use. SMS goes through
+  // TurboSMS (Ukrainian provider, +380 only), so Kloniko is email-only.
+  var emailOnly = store === 'pl';
+
   window.REVIEW_I18N = {
     locale: locale,
     store: store,
+    emailOnly: emailOnly,
     brand: brand,
     t: t,
     applyI18n: applyI18n

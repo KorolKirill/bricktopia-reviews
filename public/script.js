@@ -18,10 +18,15 @@
 
   // i18n bridge (i18n.js is loaded before this file).
   const I18N = window.REVIEW_I18N || {
-    locale: 'uk', store: 'ua', brand: { name: 'Bricktopia', url: 'https://bricktopia.store/' },
+    locale: 'uk', store: 'ua', emailOnly: false,
+    brand: { name: 'Bricktopia', url: 'https://bricktopia.store/' },
     t: (k) => k, applyI18n: () => {},
   };
   const t = (k, v) => I18N.t(k, v);
+  // Kloniko has no SMS channel (TurboSMS is UA-only), so on that store we ask
+  // for an email instead of "phone or email" — otherwise people leave a +48
+  // number and never get their promo code.
+  const EMAIL_ONLY = !!I18N.emailOnly;
 
   const STAR_LABELS = {
     1: t('star1'),
@@ -78,6 +83,7 @@
     // Optional — empty is valid (we just won't send the promo then).
     if (!v) return null;
     if (EMAIL_RE.test(v)) return null;
+    if (EMAIL_ONLY) return t('err_valid_email');
     if (PHONE_RE.test(v)) return null;
     return t('err_contact_invalid');
   }
@@ -1226,6 +1232,30 @@
   // the post-order email), we can't assume the visitor actually ordered
   // anything. Swap out copy that says "дякуємо за замовлення" / references
   // ordering for neutral review-leaving wording.
+  // On email-only stores, retitle both contact fields (negative-flow and the
+  // review-flow promo field) and switch their inputs to type=email so mobile
+  // keyboards help instead of offering a numpad.
+  function applyEmailOnlyCopy() {
+    if (!EMAIL_ONLY) return;
+    const negLabel = document.querySelector('label[for="neg-contact"]');
+    if (negLabel) negLabel.textContent = t('label_contact_email');
+    const negInput = document.getElementById('neg-contact');
+    if (negInput) {
+      negInput.type = 'email';
+      negInput.placeholder = t('ph_contact_email_only');
+    }
+
+    const reviewLabel = document.querySelector('label[for="review-contact"] span[data-i18n="label_contact_optional"]');
+    if (reviewLabel) reviewLabel.textContent = t('label_contact_email');
+    const reviewInput = document.getElementById('review-contact');
+    if (reviewInput) {
+      reviewInput.type = 'email';
+      reviewInput.placeholder = t('ph_contact_email_only');
+    }
+    const hint = document.querySelector('#step-review .form-hint[data-i18n="contact_hint"]');
+    if (hint) hint.textContent = t('contact_hint_email');
+  }
+
   function applyEmbedCopy() {
     const ratingH1 = document.querySelector('#step-rating h1');
     if (ratingH1) ratingH1.textContent = t('rating_h1_embed');
@@ -1275,6 +1305,7 @@
     // then embed-mode copy overrides a few headings.
     I18N.applyI18n();
     localizeRadios();
+    applyEmailOnlyCopy();
 
     if (isEmbedMode()) {
       document.body.classList.add('is-embed');
