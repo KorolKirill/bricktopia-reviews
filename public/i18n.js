@@ -29,8 +29,23 @@
   var locale = resolveLocale(store, params.get('locale'));
 
   var BRANDS = {
-    ua: { name: 'Bricktopia', url: 'https://bricktopia.store/' },
-    pl: { name: 'Kloniko', url: 'https://kloniko.store/' }
+    ua: {
+      name: 'Bricktopia',
+      url: 'https://bricktopia.store/',
+      instagram: 'https://www.instagram.com/bricktopia.ua/',
+      // Месенджер бренду: UA — Telegram, PL — WhatsApp (Telegram у Польщі не в ходу).
+      messengerLabel: '📱 Telegram',
+      messengerUrl: 'https://t.me/managerUUA',
+      phone: '+380966596072'
+    },
+    pl: {
+      name: 'Kloniko',
+      url: 'https://kloniko.store/',
+      instagram: 'https://www.instagram.com/kloniko.pl/',
+      messengerLabel: '💬 WhatsApp',
+      messengerUrl: 'https://wa.me/48573458877',
+      phone: '+48 573 458 877'
+    }
   };
   var brand = BRANDS[store];
 
@@ -348,6 +363,14 @@
     // Brand-driven bits
     root.querySelectorAll('[data-brand-name]').forEach(function (el) { el.textContent = brand.name; });
     root.querySelectorAll('[data-brand-href]').forEach(function (el) { el.setAttribute('href', brand.url); });
+    // Контакти футера — свої в кожного бренду: PL бачить WhatsApp/kloniko.pl/+48,
+    // а не українські Telegram/bricktopia.ua/+380.
+    root.querySelectorAll('[data-messenger-link]').forEach(function (el) {
+      el.setAttribute('href', brand.messengerUrl);
+      el.textContent = brand.messengerLabel;
+    });
+    root.querySelectorAll('[data-ig-link]').forEach(function (el) { el.setAttribute('href', brand.instagram); });
+    root.querySelectorAll('[data-brand-phone]').forEach(function (el) { el.textContent = brand.phone; });
     // Bare domain text (e.g. "kloniko.store") for the promo-hint links.
     var domain = brand.url.replace(/^https?:\/\//, '').replace(/\/$/, '');
     root.querySelectorAll('[data-brand-domain]').forEach(function (el) { el.textContent = domain; });

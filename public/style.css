@@ -2,20 +2,22 @@
 /*  Bricktopia Reviews   */
 /* ===================== */
 
+/* Палітра як у транзакційних листах Kloniko/Bricktopia (kloniko-email-layout):
+   персиковий фон з цегляним тайлом, помаранчева шапка, білі картки 24px. */
 :root {
   --red: #E42C0B;
   --orange: #FA5800;
   --lime: #CBDE25;
   --lime-dark: #A6D700;
-  --bg: #F5F5F5;
+  --bg: #FFF1E9;
   --white: #FFFFFF;
-  --dark: #333333;
-  --muted: #555555;
-  --light-muted: #888888;
-  --border: #F0F0F0;
-  --radius: 16px;
+  --dark: #241812;
+  --muted: #5c4a3f;
+  --light-muted: #9c8577;
+  --border: #f0e8e2;
+  --radius: 24px;
   --radius-sm: 12px;
-  --shadow: 0 4px 24px rgba(0,0,0,0.08);
+  --shadow: 0 4px 24px rgba(36,24,18,0.08);
 }
 
 * {
@@ -27,6 +29,10 @@
 body {
   font-family: 'Rubik', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
   background-color: var(--bg);
+  background-image: url('https://cdn.shopify.com/s/files/1/1047/2931/3619/files/bg-bricks-tile.png?v=1786376294');
+  background-repeat: repeat;
+  background-position: top center;
+  background-size: 600px 800px;
   color: var(--dark);
   line-height: 1.6;
   min-height: 100vh;
@@ -40,20 +46,24 @@ body {
   padding: 20px 10px;
 }
 
+/* Контейнер прозорий — кожен блок (шапка, крок, футер) є окремою
+   скругленою карткою на персиковому фоні, як у листах. */
 .container {
   max-width: 560px;
   width: 100%;
-  background: var(--white);
-  border-radius: var(--radius);
-  box-shadow: var(--shadow);
-  overflow: hidden;
+  background: transparent;
+  border-radius: 0;
+  box-shadow: none;
+  overflow: visible;
 }
 
-/* Logo — text only */
+/* Logo — помаранчева скруглена шапка-картка */
 .logo-section {
-  background: linear-gradient(135deg, var(--red) 0%, var(--orange) 100%);
-  padding: 20px 30px;
+  background: var(--orange);
+  padding: 28px 24px;
   text-align: center;
+  border-radius: var(--radius);
+  margin-bottom: 16px;
 }
 
 .logo-text {
@@ -66,11 +76,14 @@ body {
   display: inline-block;
 }
 
-/* Steps */
+/* Steps — біла картка */
 .step {
   display: none;
   padding: 40px 30px;
   animation: fadeIn 0.4s ease;
+  background: var(--white);
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
 }
 
 .step.active {
@@ -516,10 +529,12 @@ h3 {
 }
 
 /* Footer */
+/* Футер — приглушений текст прямо на персиковому фоні, як у листах */
 .footer {
-  background: var(--orange);
-  padding: 24px 30px;
+  background: transparent;
+  padding: 22px 20px 8px;
   text-align: center;
+  margin-top: 2px;
 }
 
 .footer-links {
@@ -527,27 +542,27 @@ h3 {
 }
 
 .footer-links a {
-  color: var(--white);
+  color: var(--orange);
   text-decoration: none;
   font-size: 14px;
-  font-weight: 500;
+  font-weight: 600;
 }
 
 .footer-links .dot {
-  color: rgba(255,255,255,0.5);
+  color: var(--light-muted);
   margin: 0 8px;
 }
 
 .footer-phone {
   font-size: 14px;
-  color: var(--white);
+  color: var(--muted);
   font-weight: 600;
   margin-bottom: 12px;
 }
 
 .footer-legal {
   font-size: 11px;
-  color: rgba(255,255,255,0.8);
+  color: var(--light-muted);
   font-style: italic;
   line-height: 1.5;
 }
@@ -1186,5 +1201,19 @@ body.is-embed #step-success-negative {
 
   .survey-nav-buttons .btn-secondary {
     width: 100%;
+  }
+}
+
+/* iOS Safari зумить сторінку при фокусі на полі зі шрифтом < 16px.
+   На телефонах піднімаємо всі текстові поля до 16px — зум зникає,
+   десктоп лишається компактним (14px). */
+@media (max-width: 640px) {
+  .form-group input[type="text"],
+  .form-group input[type="email"],
+  .form-group textarea,
+  .form-group select.select-input,
+  .other-input,
+  .optin-email-wrap input[type="email"] {
+    font-size: 16px;
   }
 }
