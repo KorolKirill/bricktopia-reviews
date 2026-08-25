@@ -51,6 +51,11 @@
 
   // Dictionary. {brand} is replaced with the store's brand name at lookup.
   var DICT = {
+    // Заголовок вкладки браузера. ⚠ У <title> у index.html лишається UA-текст
+    // (перший кадр до JS), тому підміняємо його в applyI18n — інакше поляк
+    // бачив у табі «Ваш відгук» на повністю польській сторінці.
+    page_title: { uk: 'Ваш відгук', pl: 'Twoja opinia', en: 'Your review' },
+
     // --- common / buttons ---
     copy: { uk: 'Копіювати', pl: 'Kopiuj', en: 'Copy' },
     copied: { uk: 'Скопійовано ✓', pl: 'Skopiowano ✓', en: 'Copied ✓' },
@@ -375,6 +380,7 @@
     var domain = brand.url.replace(/^https?:\/\//, '').replace(/\/$/, '');
     root.querySelectorAll('[data-brand-domain]').forEach(function (el) { el.textContent = domain; });
     document.documentElement.setAttribute('lang', locale);
+    document.title = t('page_title');
   }
 
   // Which contact channels this store can actually use. SMS goes through
