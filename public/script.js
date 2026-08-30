@@ -217,6 +217,10 @@
       storeId: params.get('store') || '',
       productHandle: params.get('product') || '',
       productTitle: params.get('product_title') || '',
+      // Оцінка з листа: у листі-проханні про відгук стоять 5 клікабельних
+      // зірочок, кожна веде сюди з ?rating=N. Людина вже зробила вибір —
+      // перший крок форми пропускаємо.
+      rating: params.get('rating') || '',
     };
   }
 
@@ -316,7 +320,7 @@
     }
   }
 
-  function selectRating(rating) {
+  function selectRating(rating, instant) {
     selectedRating = rating;
 
     starBtns.forEach((btn) => {
@@ -332,7 +336,7 @@
       } else {
         showStep('positive');
       }
-    }, 500);
+    }, instant ? 0 : 500);
   }
 
   // --- Review-form stars ---
@@ -1330,6 +1334,12 @@
     initOptin();
     initEvents();
     initUserDoneLinks();
+
+    // Зірочка, натиснута прямо в листі (?rating=1..5): ставимо оцінку і
+    // одразу показуємо потрібний крок — без паузи 500 мс, вона тут ні до
+    // чого (анімація потрібна, коли зірку тиснуть на самій сторінці).
+    const urlRating = parseInt(getUrlParams().rating, 10);
+    if (urlRating >= 1 && urlRating <= 5) selectRating(urlRating, true);
   }
 
   if (document.readyState === 'loading') {
