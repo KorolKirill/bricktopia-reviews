@@ -22,6 +22,9 @@
     var v = String(raw || '').trim().toLowerCase().split('-')[0];
     var allowed = store === 'pl' ? ['pl', 'en', 'uk'] : ['uk', 'en'];
     if (allowed.indexOf(v) !== -1) return v;
+    // Мову передали, але перекладу форми нею немає (ru, it, de…) — англійська,
+    // а не мова магазину: італієць польською не прочитає (власник, 13.10.2026).
+    if (v) return 'en';
     return store === 'pl' ? 'pl' : 'uk';
   }
 
@@ -170,6 +173,9 @@
     file_upload_title: { uk: 'Додати фото або відео', pl: 'Dodaj zdjęcie lub film', en: 'Add a photo or video' },
     file_upload_hint: { uk: 'До 3 файлів, макс. 15 МБ кожен', pl: 'Do 3 plików, maks. 15 MB każdy', en: 'Up to 3 files, max 15 MB each' },
     review_q_contact: { uk: 'Куди надіслати ваш промокод?', pl: 'Gdzie wysłać Twój kod rabatowy?', en: 'Where should we send your promo code?' },
+    // Оцінка 1–3: промокоду не буде, контакт потрібен, щоб ми могли написати.
+    review_q_contact_low: { uk: 'Як з вами зв\'язатися?', pl: 'Jak możemy się z Tobą skontaktować?', en: 'How can we reach you?' },
+    contact_hint_low: { uk: 'Залиште контакт — ми напишемо вам, щоб усе виправити', pl: 'Zostaw kontakt — napiszemy do Ciebie, aby wszystko naprawić', en: 'Leave a contact — we\'ll write to you to make things right' },
     label_name_req: { uk: 'Ваше ім\'я *', pl: 'Twoje imię *', en: 'Your name *' },
     ph_sign_review: { uk: 'Як підписати відгук', pl: 'Jak podpisać opinię', en: 'How to sign the review' },
     label_contact_optional: { uk: 'Email або телефон', pl: 'Email lub telefon', en: 'Email or phone' },
@@ -191,12 +197,12 @@
       pl: 'Jesteś niesamowity 💛 Oto Twój prezent — kod rabatowy na następne zamówienie:',
       en: 'You\'re amazing 💛 Here\'s your gift — a discount code for your next order:'
     },
-    // Оцінка 1–3: відгук іде на перевірку (status=pending), тож не обіцяємо,
-    // що він уже на сайті, і не пишемо «ви неймовірно круті».
+    // Оцінка 1–3: відгук іде на перевірку (status=pending) і промокод за нього
+    // не видається — тож ні «вже на сайті», ні «тримайте подарунок».
     success_review_subtitle_low: {
-      uk: 'Дякуємо за чесний відгук — він допомагає нам ставати кращими. Він з\'явиться на сайті після перевірки, а якщо в нас є ваш контакт — ми напишемо вам, щоб усе виправити. Ваш промокод на наступне замовлення:',
-      pl: 'Dziękujemy za szczerą opinię — pomaga nam być lepszymi. Pojawi się na stronie po weryfikacji, a jeśli mamy Twój kontakt — napiszemy do Ciebie, aby wszystko naprawić. Twój kod rabatowy na następne zamówienie:',
-      en: 'Thank you for your honest review — it helps us get better. It will appear on the site after moderation, and if we have your contact we\'ll write to you to make things right. Your discount code for your next order:'
+      uk: 'Дякуємо за чесний відгук — він допомагає нам ставати кращими. Він з\'явиться на сайті після перевірки, а якщо в нас є ваш контакт — ми напишемо вам, щоб усе виправити.',
+      pl: 'Dziękujemy za szczerą opinię — pomaga nam być lepszymi. Pojawi się na stronie po weryfikacji, a jeśli mamy Twój kontakt — napiszemy do Ciebie, aby wszystko naprawić.',
+      en: 'Thank you for your honest review — it helps us get better. It will appear on the site after moderation, and if we have your contact we\'ll write to you to make things right.'
     },
     promo_card_label: { uk: 'Ваш промокод', pl: 'Twój kod rabatowy', en: 'Your promo code' },
     promo_card_hint_pre: { uk: 'Діє', pl: 'Ważny', en: 'Valid for' },

@@ -375,7 +375,20 @@
     const pct = Math.round((page / TOTAL_REVIEW_PAGES) * 100);
     if (reviewProgressBar) reviewProgressBar.style.width = pct + '%';
     if (reviewStepLabel) reviewStepLabel.textContent = t('step_x_of_4', { n: page });
+    if (page === TOTAL_REVIEW_PAGES) applyContactStepCopy();
     setTimeout(notifyHostHeight, 50);
+  }
+
+  // За оцінку 1–3 промокод не видаємо, тож на кроці контакту не обіцяємо
+  // «надішлемо промокод» — просимо контакт, щоб написати й виправити.
+  function applyContactStepCopy() {
+    const low = reviewRating > 0 && reviewRating <= LOW_RATING_MAX;
+    const q = document.querySelector('.review-page[data-page="4"] .subtitle');
+    if (q) q.textContent = t(low ? 'review_q_contact_low' : 'review_q_contact');
+    const hint = document.querySelector('#step-review .form-hint[data-i18n="contact_hint"]');
+    if (hint) {
+      hint.textContent = t(low ? 'contact_hint_low' : (EMAIL_ONLY ? 'contact_hint_email' : 'contact_hint'));
+    }
   }
 
   function openReviewForm() {
@@ -1076,11 +1089,24 @@
             setPromoFromReview(result.promoCode);
           }
           optinSubmittedReviewId = (result && result.id) || null;
+          const lowRating = reviewRating <= LOW_RATING_MAX;
           const successSubtitle = document.querySelector('#step-success-review .subtitle');
           if (successSubtitle) {
             successSubtitle.innerHTML = t(
-              reviewRating <= LOW_RATING_MAX ? 'success_review_subtitle_low' : 'success_review_subtitle',
+              lowRating ? 'success_review_subtitle_low' : 'success_review_subtitle',
             );
+          }
+          // Промокоду за низьку оцінку немає — ховаємо картку коду й
+          // пропозицію «покращити промокод до 10%» (нема чого покращувати).
+          const offerSurveyCard = document.getElementById('offer-survey-card');
+          if (lowRating) {
+            ['review-promo-card', 'promo-upgraded-badge'].forEach((id) => {
+              const el = document.getElementById(id);
+              if (el) el.style.display = 'none';
+            });
+            if (offerSurveyCard) offerSurveyCard.style.display = 'none';
+          } else if (offerSurveyCard && !(storedPromo && Number(storedPromo.percent) >= 10)) {
+            offerSurveyCard.style.display = 'block';
           }
           resetOptin();
           postToHost('review-submitted', {
