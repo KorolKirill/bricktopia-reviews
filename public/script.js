@@ -36,6 +36,10 @@
     5: t('star5'),
   };
 
+  // Оцінка до цієї включно = «щось не так»: спершу просимо дати нам
+  // виправити (закрите звернення), публічний відгук — другою кнопкою.
+  const LOW_RATING_MAX = 3;
+
   const TOTAL_SURVEY_PAGES = 7;
   const TOTAL_REVIEW_PAGES = 4;
   const MAX_FILES = 3;
@@ -331,7 +335,7 @@
     starLabel.textContent = STAR_LABELS[rating];
 
     setTimeout(() => {
-      if (rating <= 3) {
+      if (rating <= LOW_RATING_MAX) {
         showStep('negative');
       } else {
         showStep('positive');
@@ -375,11 +379,26 @@
   }
 
   function openReviewForm() {
-    // Carry over the rating chosen on step 1 (should be 4 or 5)
+    // Carry over the rating chosen on step 1 (1–3 arrive from the negative step)
     reviewRating = selectedRating || 5;
     paintReviewStars(reviewRating);
     showReviewPage(1);
     showStep('review');
+  }
+
+  // Публічний відгук з низькою оцінкою: те, що людина вже набрала у зверненні,
+  // переносимо у форму відгуку, щоб не змушувати писати вдруге.
+  function openReviewFormFromNegative() {
+    const carry = (fromId, toId) => {
+      const from = document.getElementById(fromId);
+      const to = document.getElementById(toId);
+      if (from && to && !to.value.trim() && from.value.trim()) to.value = from.value.trim();
+    };
+    carry('neg-name', 'review-name');
+    carry('neg-contact', 'review-contact');
+    carry('neg-problem', 'review-body');
+    carry('neg-order', 'review-order');
+    openReviewForm();
   }
 
   // --- File uploads ---
@@ -886,7 +905,12 @@
           showStep('successReview');
           return;
         }
-        const target = btn.dataset.go;
+        let target = btn.dataset.go;
+        // З низькою оцінкою у форму відгуку заходять з кроку «negative» —
+        // туди ж і повертаємо, а не на «Ви зробили наш день».
+        if (target === 'positive' && selectedRating && selectedRating <= LOW_RATING_MAX) {
+          target = 'negative';
+        }
         if (target) showStep(target);
       });
     });
@@ -971,6 +995,11 @@
       btnShowReview.addEventListener('click', openReviewForm);
     }
 
+    const btnNegPublicReview = document.getElementById('btn-neg-public-review');
+    if (btnNegPublicReview) {
+      btnNegPublicReview.addEventListener('click', openReviewFormFromNegative);
+    }
+
     // Offer the survey AFTER a positive review is submitted
     if (btnShowSurveyAfterReview) {
       btnShowSurveyAfterReview.addEventListener('click', () => {
@@ -1047,6 +1076,12 @@
             setPromoFromReview(result.promoCode);
           }
           optinSubmittedReviewId = (result && result.id) || null;
+          const successSubtitle = document.querySelector('#step-success-review .subtitle');
+          if (successSubtitle) {
+            successSubtitle.innerHTML = t(
+              reviewRating <= LOW_RATING_MAX ? 'success_review_subtitle_low' : 'success_review_subtitle',
+            );
+          }
           resetOptin();
           postToHost('review-submitted', {
             rating: reviewRating,

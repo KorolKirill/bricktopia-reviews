@@ -7,6 +7,12 @@ A lightweight HTML/CSS/JS form for gathering customer reviews — embeddable via
 - **Stack:** plain HTML/CSS/JS.
 - **Deploy:** Vercel static (config in `vercel.json`).
 
+## Rating flow (UA + PL, one deployment: `?store=ua|pl`)
+
+- 4–5★ → «positive» step → public review form (`POST lost-orders /api/public/reviews/submit`, auto-approved).
+- 1–3★ (`LOW_RATING_MAX` in `script.js`) → «negative» step: first the private complaint form ("let us fix it", `POST platizhka-back /reviews/submit`, `type: complaint`), and below it the button «Залишити публічний відгук» that opens the same review form with the low rating carried over (name / contact / text are copied from the complaint fields).
+- A 1–3★ public review is saved as `status = pending` by the backend: it appears on the storefront only after approval in the lost-orders admin.
+
 ## Run
 
 ```bash

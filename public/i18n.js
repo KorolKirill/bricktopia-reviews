@@ -132,6 +132,12 @@
       en: 'Describe the problem — we\'ll look into it and get back to you'
     },
     send: { uk: 'Відправити', pl: 'Wyślij', en: 'Send' },
+    neg_public_text: {
+      uk: 'Дайте нам, будь ласка, шанс спершу все виправити — напишіть вище, і ми з вами зв\'яжемось. Якщо хочете, можете також одразу залишити публічний відгук:',
+      pl: 'Daj nam proszę szansę najpierw to naprawić — napisz powyżej, a skontaktujemy się z Tobą. Jeśli wolisz, możesz też od razu zostawić publiczną opinię:',
+      en: 'Please give us a chance to make it right first — write to us above and we\'ll get back to you. If you prefer, you can also leave a public review right away:'
+    },
+    neg_public_btn: { uk: 'Залишити публічний відгук', pl: 'Zostaw publiczną opinię', en: 'Leave a public review' },
 
     // --- positive flow ---
     pos_h2: { uk: 'Ви зробили наш день! 🥰', pl: 'Umiliłeś nam dzień! 🥰', en: 'You made our day! 🥰' },
@@ -184,6 +190,13 @@
       uk: 'Ви неймовірно круті 💛 Тримайте ваш подарунок — промокод на знижку на наступне замовлення:',
       pl: 'Jesteś niesamowity 💛 Oto Twój prezent — kod rabatowy na następne zamówienie:',
       en: 'You\'re amazing 💛 Here\'s your gift — a discount code for your next order:'
+    },
+    // Оцінка 1–3: відгук іде на перевірку (status=pending), тож не обіцяємо,
+    // що він уже на сайті, і не пишемо «ви неймовірно круті».
+    success_review_subtitle_low: {
+      uk: 'Дякуємо за чесний відгук — він допомагає нам ставати кращими. Він з\'явиться на сайті після перевірки, а якщо в нас є ваш контакт — ми напишемо вам, щоб усе виправити. Ваш промокод на наступне замовлення:',
+      pl: 'Dziękujemy za szczerą opinię — pomaga nam być lepszymi. Pojawi się na stronie po weryfikacji, a jeśli mamy Twój kontakt — napiszemy do Ciebie, aby wszystko naprawić. Twój kod rabatowy na następne zamówienie:',
+      en: 'Thank you for your honest review — it helps us get better. It will appear on the site after moderation, and if we have your contact we\'ll write to you to make things right. Your discount code for your next order:'
     },
     promo_card_label: { uk: 'Ваш промокод', pl: 'Twój kod rabatowy', en: 'Your promo code' },
     promo_card_hint_pre: { uk: 'Діє', pl: 'Ważny', en: 'Valid for' },

@@ -113,6 +113,37 @@ body {
   color: var(--orange);
 }
 
+/* Negative step: secondary path to a public review */
+.neg-public {
+  margin-top: 24px;
+  padding-top: 18px;
+  border-top: 1px solid var(--border);
+  text-align: center;
+}
+
+.neg-public-text {
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--light-muted);
+  margin-bottom: 8px;
+}
+
+.btn-text {
+  background: none;
+  border: none;
+  color: var(--light-muted);
+  font-size: 14px;
+  font-family: 'Rubik', sans-serif;
+  text-decoration: underline;
+  cursor: pointer;
+  padding: 8px 12px;
+  transition: color 0.2s;
+}
+
+.btn-text:hover {
+  color: var(--orange);
+}
+
 /* Typography */
 h1 {
   font-size: 24px;
